@@ -1,0 +1,14 @@
+streamlit 
+langchain 
+langchain-community
+ollama
+openai 
+faiss-cpu 
+tiktoken 
+chromadb 
+pypdf
+python-docx
+pandas 
+openpyxl
+
+
