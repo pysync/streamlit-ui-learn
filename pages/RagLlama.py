@@ -76,9 +76,33 @@ def init_chat_engine(index):
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Chat", "Screen List", "ER Digram", "API List", "Settings", "About"])
 with tab2:
+    # Tab2: Generated Screen List should display list of generated screens
+    # That data should be a pandas dataframe with some column like: No, Code, Module, Screen Name, Description, etc.
+    # And that data should can access cross tab (acess via session state) and in feature can be save to database
+    # You can use st.dataframe() to display the data
+    # We should have a button to refresh Screen List from current system context
+    # You can use st.button() to create the button, after click the button, the Screen List  should be re-generated
+    
     st.title("Generated Screen List")
 with tab3: 
-    st.title("Generated ER Digram")
+    # Tab3: Generated ER Digram should display the DB table list and ER Diagram
+    # That data shoud be a pandas dataframe with some column like: No, Table Name, Description, etc.
+    # Data should contains all fields of the table
+    # And that data should can access cross tab (acess via session state) and in feature can be save to database
+    # You can use st.dataframe() to display the data
+    # ER digram should be display as image or graph
+    # We should have a button to refresh DB Table List from current system context
+    # It's mean re-generate the DB Table List from current system chat context & vector db
+    # You can use st.button() to create the button, after click the button, the DB Table List and ER Diagram should be re-generated
+    
+    st.title("Generated DB Table and ER Digaram")
+    st.header("DB Table List")
+    
+    # ... Display the DB Table List ...
+    st.header("ER Digram")
+    # ... Display the ER Digram ...
+    
+    
 with tab4:
     st.title("Generated API List")
 with tab5:
