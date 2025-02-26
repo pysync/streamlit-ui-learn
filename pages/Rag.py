@@ -14,6 +14,8 @@ from langchain.llms import Ollama
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate  # Import PromptTemplate
+from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
+from langchain.chains import ConversationalRetrievalChain
 
 
 # Configuration
@@ -27,19 +29,26 @@ def load_document(file):
     """Loads a document based on its file type."""
     try:
         documents = []  # Initialize an empty list to hold documents
+
         if file.type == "application/pdf":
             loader = PyPDFLoader(file)
-            documents.extend(loader.load())  # Extend the documents list
+            loaded_documents = loader.load()
+            for doc in loaded_documents:
+                doc.metadata["file_name"] = file.name  # Add file name to metadata
+            documents.extend(loaded_documents)
         elif file.type == "text/plain":
             loader = TextLoader(file)
-            documents.extend(loader.load())  # Extend the documents list
+            loaded_documents = loader.load()
+            for doc in loaded_documents:
+                doc.metadata["file_name"] = file.name  # Add file name to metadata
+            documents.extend(loaded_documents)
         elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             # DOCX
             try:
                 docx_doc = DocxDocument(file)
                 text = "\n".join([para.text for para in docx_doc.paragraphs])
-                #loader = TextLoader(BytesIO(text.encode('utf-8')), encoding='utf-8')  # Using TextLoader with BytesIO
-                documents.append(Document(page_content=text))  # Create document directly
+                doc = Document(page_content=text, metadata={"file_name": file.name})  # Include metadata
+                documents.append(doc)
             except Exception as e:
                 print(f"Error processing DOCX: {e}")
                 st.error(f"Error processing DOCX: {e}") # show error on streamlit
@@ -47,23 +56,26 @@ def load_document(file):
         elif file.type == "text/csv":
             df = pd.read_csv(file)
             text = df.to_string()  # Convert DataFrame to string
-            loader = TextLoader(BytesIO(text.encode('utf-8')), encoding='utf-8')  # Using TextLoader with BytesIO
-            documents.extend(loader.load())  # Extend the documents list
-        elif file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":  # XLSX
+            loader = TextLoader(BytesIO(text.encode('utf-8')), encoding='utf-8')
+            loaded_documents = loader.load()
+            for doc in loaded_documents:
+                doc.metadata["file_name"] = file.name
+            documents.extend(loaded_documents)
+        elif file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             try:
                 xls = pd.ExcelFile(file)
-                text = ""
                 for sheet_name in xls.sheet_names:
                     df = pd.read_excel(xls, sheet_name=sheet_name)
-                    text += f"Sheet: {sheet_name}\n{df.to_string()}\n"
-                #loader = TextLoader(BytesIO(text.encode('utf-8')), encoding='utf-8')  # Using TextLoader with BytesIO
-                documents.append(Document(page_content=text)) # Create document directly
+                    text = f"Sheet: {sheet_name}\n{df.to_string()}"
+                    doc = Document(page_content=text, metadata={"file_name": file.name, "sheet_name": sheet_name})
+                    documents.append(doc)
             except Exception as e:
                 print(f"Error processing XLSX: {e}")
-                st.error(f"Error processing XLSX: {e}")  # show error on streamlit
+                st.error(f"Error processing XLSX: {e}")
                 return []
         else:
             raise ValueError(f"Unsupported file type: {file.type}")
+
         return documents
 
     except Exception as e:
@@ -119,6 +131,15 @@ uploaded_files = st.sidebar.file_uploader(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Initialize conversation history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# Document info
+if "document_info" not in st.session_state:
+    st.session_state.document_info = ""
+
+
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -129,9 +150,25 @@ for message in st.session_state.messages:
 vector_db = load_existing_db()  # Try to load existing DB first
 process_files = False # use for decide to process files base on action.
 
+# File selection checkboxes
+selected_files = {}
 if uploaded_files:
-    process_files = True
-    files_to_process = uploaded_files
+    st.sidebar.subheader("Select files for context:")
+    for file in uploaded_files:
+        checkbox_key = file.name  # Use just the filename as the key
+
+        # Initialize checkbox state if it doesn't exist
+        if checkbox_key not in st.session_state:
+            st.session_state[checkbox_key] = True
+
+        selected = st.sidebar.checkbox(file.name, key=checkbox_key)
+
+
+    files_to_process = [file for file in uploaded_files if st.session_state[file.name]]
+    process_files = bool(files_to_process)  # Only process if there are selected files
+else:
+    files_to_process = []
+    process_files = False
 
 if process_files:
     with st.spinner("Processing documents..."):
@@ -160,6 +197,16 @@ if process_files:
                 # Embed and store chunks
                 vector_db = embed_and_store_chunks(chunks)
                 st.success("Documents processed and database created successfully!")
+
+                # Store document info in session state
+                document_names = ", ".join([file.name for file in files_to_process])
+                st.session_state.document_info = f"You are chatting about the document(s): {document_names}"
+
+                # Add the initial message to the chat history
+                st.session_state.messages.append({"role": "assistant", "content": st.session_state.document_info})
+                with st.chat_message("assistant"):
+                    st.markdown(st.session_state.document_info)
+
             else:
                 st.warning("No documents were loaded, cannot create the knowledge base.")
                 vector_db = None  # Ensure vector_db is None if no documents are loaded
@@ -173,18 +220,26 @@ if vector_db:
     retriever = vector_db.as_retriever()
 
     # Custom Prompt (Optional)
-    prompt_template = """Use the following pieces of context to answer the question at the end. 
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-    {context}
-
-    Question: {question}
-    """
+    prompt_template = """{document_info}
+        Use the following pieces of context to answer the question at the end. 
+        If you don't know the answer, just say that you don't know the answer.
+        Context: {context}
+        Question: {question}"""
     PROMPT = PromptTemplate(
-        template=prompt_template, input_variables=["context", "question"]
+        template=prompt_template, input_variables=["context", "question", "document_info"]
     )
     chain_type_kwargs = {"prompt": PROMPT}
 
+    # Set up the conversational chain
+    llm = Ollama(model=LLM_MODEL, temperature=0, base_url=OLLAMA_HOST)
+    qa_chain = ConversationalRetrievalChain.from_llm(
+        llm,
+        retriever=retriever,
+        condense_question_prompt=CONDENSE_QUESTION_PROMPT,
+        return_source_documents=False,
+        chain_type="stuff",
+        combine_docs_chain_kwargs=chain_type_kwargs
+    )
 
     # Accept user input
     if query := st.chat_input("Ask me anything about the documents"):
@@ -195,17 +250,19 @@ if vector_db:
             st.markdown(query)
 
         # Get LLM response
-        llm = Ollama(model=LLM_MODEL, temperature=0, base_url=OLLAMA_HOST)
-        qa_chain = RetrievalQA.from_chain_type(llm, retriever=retriever, chain_type_kwargs=chain_type_kwargs)
-        response = qa_chain.run(query)
+        response = qa_chain({"question": query, "chat_history": st.session_state.chat_history, "document_info": st.session_state.document_info})
         # Remove <think>...</think> tags from the response
-        response = remove_think_tags(response)
+        response_content = remove_think_tags(response["answer"])
 
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.messages.append({"role": "assistant", "content": response_content})
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            st.markdown(response)
+            st.markdown(response_content)
+
+        # Update chat history
+        st.session_state.chat_history.append((query, response_content))
+
 
 else:
     st.info("Please upload documents to create the knowledge base.")
