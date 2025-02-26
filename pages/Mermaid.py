@@ -64,6 +64,31 @@ sequenceDiagram
 """
 
 st_mermaid(mermaid_code) 
+
+
+
+st.header("Database ERD: Customers and Orders")
+mermaid_code = """
+erDiagram
+    CUSTOMER {
+        int customer_id PK
+        string customer_name
+        string customer_email
+    }
+
+    ORDER {
+        int order_id PK
+        int customer_id FK
+        date order_date
+    }
+
+    CUSTOMER ||--o{ ORDER : places
+"""
+
+st_mermaid(mermaid_code) 
+
+
+st.header("Flowchart with a Loop")
 mermaid_code = """
 graph TD
     A[Start] --> B[Initialize]
@@ -77,7 +102,7 @@ st_mermaid(mermaid_code)
 
 
 
-st.header("Flowchart with a Loop")
+
 
 
 st.title("Mermaid Diagram Example (using HTML Component)")
