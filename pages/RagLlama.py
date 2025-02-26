@@ -1,4 +1,7 @@
 import streamlit as st
+import pandas as pd
+import json
+import re
 from llama_index.core import (
     SimpleDirectoryReader,
     VectorStoreIndex,
@@ -9,16 +12,14 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core import Settings
 import os
-import pandas as pd
 from streamlit_mermaid import st_mermaid
-import json
-import re
 
 # --- Constants ---
 OLLAMA_MODEL = "deepseek-r1"  # Or any other model you have in Ollama
 EMBEDDING_MODEL = "deepseek-r1" # Or any other embedding model you have in Ollama
 OLLAMA_HOST = "http://10.1.11.60:11434"
-OLLAMA_TIMEOUT = 300.0 
+OLLAMA_TIMEOUT = 300.0
+DEBUG = False 
 
 # --- Helper Functions ---
 def load_data(uploaded_files):
@@ -38,11 +39,9 @@ def load_data(uploaded_files):
             f.write(uploaded_file.getbuffer())
         file_paths.append(file_path)
 
-
     # Load data using SimpleDirectoryReader (automatically handles multiple file types)
     documents = SimpleDirectoryReader(input_files=file_paths).load_data()
     return documents
-
 
 def build_index(documents):
     """Builds a vector store index from the documents."""
@@ -62,7 +61,6 @@ def build_index(documents):
     # Build the index
     index = VectorStoreIndex.from_documents(documents)
     return index
-
 
 def init_chat_engine(index):
     """Initializes the chat engine with memory."""
@@ -116,7 +114,6 @@ def extract_json(text):
     except Exception as e:
         print(f"Unexpected error during JSON extraction: {e}")
         return None  # Handle unexpected errors
-    
 
 # --- Function to Generate Screen List ---
 def generate_screen_list(chat_engine):
@@ -127,10 +124,10 @@ def generate_screen_list(chat_engine):
             "Return a JSON array (list) of JSON objects (dictionaries).  Each JSON object should represent a screen and contain the following keys: "
             "No, Code, Module, Screen_Name, Description.  Make the 'Code' column unique, and use that Code for referent screen between context. Ensure the JSON is valid and parsable. Only return JSON, without other text."
         )
-
-        st.write("### LLM Response (Debug):")
-        st.write(response.response)  # Display the raw response
-        st.write("### JSON Parse (Debug):")
+        if DEBUG:
+            st.write("### LLM Response (Debug):")
+            st.write(response.response)  # Display the raw response
+            st.write("### JSON Parse (Debug):")
 
         # Extract the JSON data
         screen_list_data = extract_json(response.response)
@@ -152,8 +149,6 @@ def generate_screen_list(chat_engine):
         st.error(f"Error generating screen list: {e}")
         return None
 
-
-
 def generate_db_info(chat_engine):
     """Generates a DB table list and ER diagram from the chat engine."""
     try:
@@ -167,6 +162,7 @@ def generate_db_info(chat_engine):
         1. Return a JSON array (list) of JSON objects (dictionaries).
         2. Each JSON object should represent a table and contain the following keys:
         - "table_name" (STRING): The name of the table.
+        - "table_description" (STRING, optional): A brief description of the table's purpose.
         - "columns" (LIST of JSON objects): A list of column objects.  Each column object should have the following keys:
             - "column_name" (STRING): The name of the column.
             - "data_type" (STRING): The data type of the column (e.g., INT, VARCHAR, DATE, DECIMAL).
@@ -175,7 +171,7 @@ def generate_db_info(chat_engine):
             - "references_table" (STRING, optional): The name of the table this column references, if it is a foreign key.  Omit this if it's not a foreign key.
             - "references_column" (STRING, optional): The name of the column in the referenced table that is references, if it is a foreign key.  Omit this if it's not a foreign key.
         3. Ensure that each table definition only has one primary key (PK) designation. If a table has a composite primary key, represent it by stating the combination of columns forms a unique identifier, not by marking multiple columns as 'PK'.
-        4. When specifying data types, use only the following: integer, varchar, date, decimal, boolean. For text fields, use varchar 
+        4. When specifying data types, use only the following: integer, varchar, date, decimal, boolean. For text fields, use varchar
         5. Table and column names must adhere to the following rules:
             -   Use only english alphanumeric characters (A-Z, a-z, 0-9) and underscores (_).
             -   Start with a letter (A-Z, a-z).
@@ -195,6 +191,7 @@ def generate_db_info(chat_engine):
         [
         {
             "table_name": "CUSTOMERS",
+            "table_description": "Stores information about customers.",
             "columns": [
             {
                 "column_name": "customer_id",
@@ -213,6 +210,7 @@ def generate_db_info(chat_engine):
         },
         {
             "table_name": "ORDERS",
+            "table_description": "Stores information about customer orders.",
             "columns": [
             {
                 "column_name": "order_id",
@@ -229,9 +227,10 @@ def generate_db_info(chat_engine):
 
         table_list_response = chat_engine.chat(table_list_prompt)
 
-        st.write("### LLM Response (Table List - Debug):")
-        st.write(table_list_response.response)
-        st.write("### JSON Parse (Debug):")
+        if DEBUG:
+            st.write("### LLM Response (Table List - Debug):")
+            st.write(table_list_response.response)
+            st.write("### JSON Parse (Debug):")
 
         table_list_data = extract_json(table_list_response.response)
 
@@ -241,7 +240,18 @@ def generate_db_info(chat_engine):
 
         st.json(table_list_data)
 
-        table_list_df = pd.DataFrame(table_list_data)
+        # Prepare data for the summary table
+        summary_data = []
+        for i, table in enumerate(table_list_data):
+            column_names = ", ".join([col['column_name'] for col in table['columns']])
+            summary_data.append({
+                "No": i + 1,
+                "Table Name": table['table_name'],
+                "Table Description": table.get('table_description', 'No description available'), # handle missing description
+                "Columns": column_names
+            })
+
+        table_list_df = pd.DataFrame(summary_data) #dataframe for summary
 
         if not isinstance(table_list_df, pd.DataFrame):
             st.error("LLM returned table list data not in expected DataFrame format.")
@@ -259,12 +269,14 @@ def generate_db_info(chat_engine):
                 table_info_string += f"- {column['column_name']} ({column['data_type']}"
                 if 'is_primary_key' in column and column["is_primary_key"]:
                     table_info_string += ", PRIMARY KEY"
-                if 'is_primary_key' in column and column["is_foreign_key"]:
+                if 'is_foreign_key' in column and column["is_foreign_key"]:
                     table_info_string += f", FOREIGN KEY{references_info})"
                 else:
                     table_info_string += ")"
                 table_info_string += "\n"
-        print(table_info_string)  # Debug
+        
+        if DEBUG:
+            print(table_info_string)  # Debug
 
         er_diagram_prompt = f"""
             You are an expert in generating Mermaid code for Entity-Relationship Diagrams (ERDs). Your output will be directly rendered by Mermaid, so it is critical that it be correct.
@@ -285,10 +297,10 @@ def generate_db_info(chat_engine):
 
             Define relationships between tables using the correct Mermaid syntax to represent cardinality (one-to-many, many-to-many, etc.). Use descriptive relationship labels (e.g., "places", "contains", "categorizes").
             Represent relationships between tables using Mermaid's relationship syntax (e.g., ||--o{{ for a one-to-many relationship). Clearly label the relationships (e.g., CUSTOMER ||--o{{ ORDER : places). For foreign keys, always include FK references <TABLE>.<COLUMN>.
-            
+
             Resolve many-to-many relationships with junction tables if necessary (e.g., ORDER_ITEMS between ORDERS and PRODUCTS).
             Ensure there is a one-to-many relationship defined between e.g., CATEGORIES and PRODUCTS and label it something like "categorizes".
-               
+
             Return only the Mermaid code string, do NOT wrap the code in markdown or other formatting. Return it as one single string.
 
             Here is an example of a complete, valid Mermaid ER diagram:
@@ -313,9 +325,10 @@ def generate_db_info(chat_engine):
 
         er_diagram_response = chat_engine.chat(er_diagram_prompt)
 
-        # Debug output for ER diagram response
-        st.write("### LLM Response (ER Diagram - Debug):")
-        st.write(er_diagram_response.response)
+        if DEBUG:
+            # Debug output for ER diagram response
+            st.write("### LLM Response (ER Diagram - Debug):")
+            st.write(er_diagram_response.response)
 
         er_diagram_code = er_diagram_response.response
 
@@ -346,7 +359,6 @@ with tab2:
     else:
         st.info("Click 'Refresh Screen List' to generate the screen list.")
 
-
 with tab3:
     st.title("Generated DB Table and ER Digaram")
 
@@ -374,6 +386,7 @@ with tab3:
                     1. Return a JSON array (list) of JSON objects (dictionaries).
                     2. Each JSON object should represent a table and contain the following keys:
                     - "table_name" (STRING): The name of the table.
+                    - "table_description" (STRING, optional): A brief description of the table's purpose.
                     - "columns" (LIST of JSON objects): A list of column objects.  Each column object should have the following keys:
                         - "column_name" (STRING): The name of the column.
                         - "data_type" (STRING): The data type of the column (e.g., INT, VARCHAR, DATE, DECIMAL).
@@ -382,7 +395,7 @@ with tab3:
                         - "references_table" (STRING, optional): The name of the table this column references, if it is a foreign key.  Omit this if it's not a foreign key.
                         - "references_column" (STRING, optional): The name of the column in the referenced table that is references, if it is a foreign key.  Omit this if it's not a foreign key.
                     3. Ensure that each table definition only has one primary key (PK) designation. If a table has a composite primary key, represent it by stating the combination of columns forms a unique identifier, not by marking multiple columns as 'PK'.
-                    4. When specifying data types, use only the following: integer, varchar, date, decimal, boolean. For text fields, use varchar 
+                    4. When specifying data types, use only the following: integer, varchar, date, decimal, boolean. For text fields, use varchar
                     5. Table and column names must adhere to the following rules:
                         -   Use only english alphanumeric characters (A-Z, a-z, 0-9) and underscores (_).
                         -   Start with a letter (A-Z, a-z).
@@ -402,6 +415,7 @@ with tab3:
                     [
                     {
                         "table_name": "CUSTOMERS",
+                        "table_description": "Stores information about customers.",
                         "columns": [
                         {
                             "column_name": "customer_id",
@@ -420,6 +434,7 @@ with tab3:
                     },
                     {
                         "table_name": "ORDERS",
+                        "table_description": "Stores information about customer orders.",
                         "columns": [
                         {
                             "column_name": "order_id",
@@ -434,10 +449,11 @@ with tab3:
                     Begin!
                     """
                 table_list_response = st.session_state.chat_engine.chat(table_list_prompt)
-
-                st.write("### LLM Response (Table List - Debug):")
-                st.write(table_list_response.response)
-                st.write("### JSON Parse (Debug):")
+                
+                if DEBUG:
+                    st.write("### LLM Response (Table List - Debug):")
+                    st.write(table_list_response.response)
+                    st.write("### JSON Parse (Debug):")
 
                 st.session_state.table_list_data = extract_json(table_list_response.response) #save table_list_data to state
 
@@ -447,7 +463,18 @@ with tab3:
 
                 st.json(st.session_state.table_list_data)
 
-                st.session_state.table_list_df = pd.DataFrame(st.session_state.table_list_data)
+                # Prepare data for the summary table
+                summary_data = []
+                for i, table in enumerate(st.session_state.table_list_data):
+                    column_names = ", ".join([col['column_name'] for col in table['columns']])
+                    summary_data.append({
+                        "No": i + 1,
+                        "Table Name": table['table_name'],
+                        "Table Description": table.get('table_description', 'No description available'), # handle missing description
+                        "Columns": column_names
+                    })
+
+                st.session_state.table_list_df = pd.DataFrame(summary_data) #dataframe for summary
 
                 if not isinstance(st.session_state.table_list_df, pd.DataFrame):
                     st.error("LLM returned table list data not in expected DataFrame format.")
@@ -470,7 +497,9 @@ with tab3:
                         else:
                             st.session_state.table_info_string += ")"
                         st.session_state.table_info_string += "\n"
-                print(st.session_state.table_info_string)  # Debug
+                
+                if DEBUG:
+                    print(st.session_state.table_info_string)  # Debug
 
 
                 er_diagram_prompt = f"""
@@ -492,10 +521,10 @@ with tab3:
 
                 Define relationships between tables using the correct Mermaid syntax to represent cardinality (one-to-many, many-to-many, etc.). Use descriptive relationship labels (e.g., "places", "contains", "categorizes").
                 Represent relationships between tables using Mermaid's relationship syntax (e.g., ||--o{{ for a one-to-many relationship). Clearly label the relationships (e.g., CUSTOMER ||--o{{ ORDER : places). For foreign keys, always include FK references <TABLE>.<COLUMN>.
-                
+
                 Resolve many-to-many relationships with junction tables if necessary (e.g., ORDER_ITEMS between ORDERS and PRODUCTS).
                 Ensure there is a one-to-many relationship defined between e.g., CATEGORIES and PRODUCTS and label it something like "categorizes".
-                   
+
                 Return only the Mermaid code string, do NOT wrap the code in markdown or other formatting. Return it as one single string.
 
                 Here is an example of a complete, valid Mermaid ER diagram:
@@ -519,15 +548,15 @@ with tab3:
                 """
                 er_diagram_response = st.session_state.chat_engine.chat(er_diagram_prompt)
 
-                # Debug output for ER diagram response
-                st.write("### LLM Response (ER Diagram - Debug):")
-                st.write(er_diagram_response.response)
+                if DEBUG:
+                    # Debug output for ER diagram response
+                    st.write("### LLM Response (ER Diagram - Debug):")
+                    st.write(er_diagram_response.response)
 
                 st.session_state.er_diagram_code = er_diagram_response.response
 
             except Exception as e:
                 st.error(f"Error generating DB info: {e}")
-
 
     # "Refresh DB Info" Button (Initial Generation)
     if st.button("Refresh DB Info"):
@@ -555,10 +584,10 @@ with tab3:
 
                 Define relationships between tables using the correct Mermaid syntax to represent cardinality (one-to-many, many-to-many, etc.). Use descriptive relationship labels (e.g., "places", "contains", "categorizes").
                 Represent relationships between tables using Mermaid's relationship syntax (e.g., ||--o{{ for a one-to-many relationship). Clearly label the relationships (e.g., CUSTOMER ||--o{{ ORDER : places). For foreign keys, always include FK references <TABLE>.<COLUMN>.
-                
+
                 Resolve many-to-many relationships with junction tables if necessary (e.g., ORDER_ITEMS between ORDERS and PRODUCTS).
                 Ensure there is a one-to-many relationship defined between e.g., CATEGORIES and PRODUCTS and label it something like "categorizes".
-                   
+
                 Return only the Mermaid code string, do NOT wrap the code in markdown or other formatting. Return it as one single string.
 
                 Here is an example of a complete, valid Mermaid ER diagram:
@@ -581,28 +610,33 @@ with tab3:
                 Begin!
                 """
             er_diagram_response = st.session_state.chat_engine.chat(er_diagram_prompt)
-            st.write("### LLM Response (ER Diagram - Debug):")
-            st.write(er_diagram_response.response)
+            if DEBUG:
+                st.write("### LLM Response (ER Diagram - Debug):")
+                st.write(er_diagram_response.response)
             st.session_state.er_diagram_code = er_diagram_response.response  # Update the code
 
     # Display
     st.header("DB Table List")
     if st.session_state.table_list_df is not None:
-        st.header("DB Table List (Summary)") 
-        st.dataframe(st.session_state.table_list_df)
-        
+        st.header("DB Table List (Summary)")
+        st.dataframe(st.session_state.table_list_df)  # display the summary dataframe
+
         st.header("DB Table Details")
-        for index, row in st.session_state.table_list_df.iterrows():
-            table_name = row["table_name"]
-            columns_data = row["columns"]
+        if st.session_state.table_list_data:
+            for table in st.session_state.table_list_data:
+                table_name = table["table_name"]
+                columns_data = table["columns"]
 
-            st.subheader(f"Table: {table_name}")
+                st.subheader(f"Table: {table_name}")
 
-            if columns_data:
-                table_df = pd.DataFrame(columns_data)  # Create dataframe
-                st.dataframe(table_df)
-            else:
-                st.warning(f"No column data found for table: {table_name}")
+                if columns_data:
+                    table_df = pd.DataFrame(columns_data)  # Create dataframe
+                    st.dataframe(table_df)
+                else:
+                    st.warning(f"No column data found for table: {table_name}")
+        else:
+            st.warning("No Table List data found")
+
     else:
         st.info("Click 'Refresh DB Info' to generate the DB table list.")
 
