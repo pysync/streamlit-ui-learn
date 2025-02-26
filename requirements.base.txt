@@ -3,3 +3,6 @@ asyncio
 watchdog
 streamlit
 
+graphviz 
+streamlit-agraph
+streamlit-mermaid

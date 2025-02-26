@@ -90,7 +90,7 @@ with tab3:
     # Data should contains all fields of the table
     # And that data should can access cross tab (acess via session state) and in feature can be save to database
     # You can use st.dataframe() to display the data
-    # ER digram should be display as image or graph
+    # ER digram should be display as graph using streamlit_mermaid
     # We should have a button to refresh DB Table List from current system context
     # It's mean re-generate the DB Table List from current system chat context & vector db
     # You can use st.button() to create the button, after click the button, the DB Table List and ER Diagram should be re-generated
