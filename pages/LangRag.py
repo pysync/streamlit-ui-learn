@@ -7,6 +7,7 @@ import re  # Import the regular expression module
 
 # Langchain
 from langchain.embeddings import OllamaEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.document_loaders import PyPDFLoader, TextLoader  # Import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -16,6 +17,9 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate  # Import PromptTemplate
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import LLMChain
+from langchain.chains.combine_documents.stuff import create_stuff_documents_chain
+
 
 
 # Configuration
@@ -56,11 +60,9 @@ def load_document(file):
         elif file.type == "text/csv":
             df = pd.read_csv(file)
             text = df.to_string()  # Convert DataFrame to string
-            loader = TextLoader(BytesIO(text.encode('utf-8')), encoding='utf-8')
-            loaded_documents = loader.load()
-            for doc in loaded_documents:
-                doc.metadata["file_name"] = file.name
-            documents.extend(loaded_documents)
+            doc = Document(page_content=text, metadata={"file_name": file.name})
+            documents.append(doc)
+
         elif file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             try:
                 xls = pd.ExcelFile(file)
@@ -95,6 +97,8 @@ def chunk_documents(documents, chunk_size=500, chunk_overlap=50):
 def embed_and_store_chunks(chunks):
     """Embeds document chunks and stores them in a FAISS vector database."""
     embeddings = OllamaEmbeddings(model=LLM_MODEL, base_url=OLLAMA_HOST)
+    #embeddings = HuggingFaceEmbeddings()
+
     vector_db = FAISS.from_documents(chunks, embeddings)
     vector_db.save_local(VECTOR_DB_PATH)
     return vector_db
@@ -147,8 +151,10 @@ for message in st.session_state.messages:
 
 
 # --- Main Logic ---
-vector_db = load_existing_db()  # Try to load existing DB first
-process_files = False # use for decide to process files base on action.
+# Load existing DB at the beginning
+vector_db = load_existing_db()
+if vector_db:
+    st.success("Existing database loaded.")
 
 # File selection checkboxes
 selected_files = {}
@@ -217,14 +223,19 @@ if process_files:
 
 # Chat UI
 if vector_db:
-    retriever = vector_db.as_retriever()
+    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
     # Custom Prompt (Optional)
     prompt_template = """{document_info}
-        Use the following pieces of context to answer the question at the end. 
-        If you don't know the answer, just say that you don't know the answer.
+        1. Use ONLY the context below.
+        2. If unsure, say "I don’t know".
+        3. Keep answers under 4 sentences.
         Context: {context}
-        Question: {question}"""
+
+        Question: {question}
+
+        Answer:
+    """
     PROMPT = PromptTemplate(
         template=prompt_template, input_variables=["context", "question", "document_info"]
     )
@@ -236,10 +247,37 @@ if vector_db:
         llm,
         retriever=retriever,
         condense_question_prompt=CONDENSE_QUESTION_PROMPT,
-        return_source_documents=False,
+        return_source_documents=True,
         chain_type="stuff",
         combine_docs_chain_kwargs=chain_type_kwargs
     )
+    # temp test ----------------
+    # Create chain
+    # llm_chain = LLMChain(llm=llm, prompt=PROMPT)
+    # # Combine document chunks
+    # document_chain = create_stuff_documents_chain(
+    #     llm=llm,
+    #     prompt=PROMPT
+    # )
+    # # temp
+    # qa_temp = RetrievalQA.from_chain_type(
+    #     llm=llm,
+    #     retriever=retriever,
+    #     chain_type="stuff", 
+    # )
+    # # temp test ----------------
+    
+    
+    # user_input = st.text_input("Ask a question:")
+
+    # if user_input:
+    #     with st.spinner("Thinking..."):
+    #         try:
+    #             response = qa_temp.run(user_input)  
+    #             st.write(response)
+    #         except Exception as e:
+    #             st.error(f"Error: {str(e)}")
+                
 
     # Accept user input
     if query := st.chat_input("Ask me anything about the documents"):

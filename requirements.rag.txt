@@ -10,5 +10,7 @@ pypdf
 python-docx
 pandas 
 openpyxl
+transformers
+sentence-transformers
 
 

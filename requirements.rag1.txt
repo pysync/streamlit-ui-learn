@@ -1,0 +1,17 @@
+streamlit 
+ollama
+openai 
+llama-index
+llama-index-embeddings-huggingface
+llama-index-llms-ollama
+llama-index-embeddings-ollama
+docx2txt
+faiss-cpu 
+tiktoken 
+chromadb 
+pypdf
+python-docx
+pandas 
+openpyxl
+
+
