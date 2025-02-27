@@ -2,3 +2,4 @@ venv/
 vector_db/
 *.pkl
 temp_files
+__pycache__

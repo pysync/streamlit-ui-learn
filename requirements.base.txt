@@ -2,7 +2,7 @@ opencv-python
 asyncio
 watchdog
 streamlit
-
+chardet
 graphviz 
 streamlit-agraph
 streamlit-mermaid

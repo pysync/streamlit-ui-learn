@@ -1,0 +1,36 @@
+ You are an expert in RAG AI Software development and architecture, Let's help me analytics bellow requirement in deep and
+ Give the ways to implementation and project outline for easy maintain   
+
+I building a software development tools - mainly use for first harf-phases in SDLC, that include 
+
+(1) requirement design ( RD ) should output:  software  requirement spect - SRS document 
+(2) basic design (BD)  should output: related BD documents, for example: screen list, function list,
+ database table schema list and detail, API list, batch list , sequence diagram, .. etc..
+(3) detail design (DD): output should is detailed of BD, and use ready for code.
+
+As workflow, 
+- system will have first screen is free note and chat to interactive with system
+- have side bar, and can upload related to project files -> after upload use as context.
+- then have multi tabs, to switch between screen that work with above output.
+as a user, first step is upload current have documents ( maybe requirement draft, or some flexible BD documents...) 
+then, ask AI explain overview current document have.
+then, user will working with note and pass to AI ask to generate screen list, API list, DB schema , some diagram... 
+Or, user can go specific above tabs, and ask user to generate ( or use button) to "re-generate from context".
+generated output should be display readltime in  ( table, dataframe). and user can interactive edit and save. saved data should boadcast update all system, it's mean if you change one feature name at SRS tab, then go screen list or function list we will can as to re-generate and update with data changed at SRS tab, and so on.
+finally  after document generated, output should be store in raw markdown files in output folder.
+and the next session, if user continue work in, the current state should be restore and can continue work with same context ( it's mean, final generated content should be use as last context)
+
+
+== Out Techstack as bellow ==
+1. UI/UX: using streamlit for quick development
++ mainly use: file structure src base /pages/ for store one page 
+   but for tabs, i use st.tabs 
++ use st.dataframe for table display, st.data_editor for editable table.
++ use st.sidebar.... for work with sidebar.
+2. For AI: 
++ llama_index.llms.ollama, llama_index.embeddings.ollama  to work with local LLM
+3. For DB vector:
++ llama_index.core VectorStoreIndex, StorageContext, SimpleDirectoryReader for load and work with db vector 
+4. For chat:
++ llama_index.core.memory ChatMemoryBuffer, chat_engine.chat to ask and get response 
+
