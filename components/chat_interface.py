@@ -46,7 +46,11 @@ class ChatInterface:
         st.write("Select documents to include in the context:")
         for file in uploaded_files:
             filename = file['filename']
-            st.session_state.selected_files[filename] = st.checkbox(filename, value=st.session_state.selected_files[filename], key=filename)
+            st.session_state.selected_files[filename] = st.checkbox(
+                filename, 
+                value=st.session_state.selected_files.get(filename), 
+                key=filename
+            )
 
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
@@ -55,7 +59,7 @@ class ChatInterface:
         if prompt := st.chat_input("Ask me anything about your project..."):
 
             # Build the prompt with the selected documents
-            selected_files = [file['filename'] for file in uploaded_files if st.session_state.selected_files[file['filename']]]
+            selected_files = [file['filename'] for file in uploaded_files if st.session_state.selected_files.get(file['filename'])]
             if selected_files:
                 file_names_to_prompt = ", ".join(selected_files)
                 prompt = f"With documents: {file_names_to_prompt}, {prompt}"

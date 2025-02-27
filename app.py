@@ -1,3 +1,4 @@
+# src/main.py
 import streamlit as st
 from data_management.context_manager import context_manager
 from data_management.vector_database import vector_db
@@ -5,11 +6,16 @@ from data_management.data_loader import load_data
 from llama_index.core import Document
 from config import config
 from llm_service.llm_handler import init_llm
-from components.chat_interface import ChatInterface
 import os
 
+from slc_tabs.SLCChat import render as SLCChat 
+from slc_tabs.SLCBD import render as SLCBD 
+from slc_tabs.SLCRD import render as SLCRD 
+from slc_tabs.SLCSettings import render as SLCSettings 
+from slc_tabs.SLCAbout import render as SLCAbout 
+
 def main():
-    st.set_page_config(page_title="SDLC Tool")
+    st.set_page_config(page_title="SDLC Tool")    
     st.sidebar.title("SDLC Tool")
 
     # Init debug state, must init before load sub page.
@@ -57,53 +63,45 @@ def main():
                         context_manager.add_uploaded_file(document.metadata["filename"], document.text)  # load to context for chat
                     progress_bar.progress(100)
                     st.sidebar.success("Files uploaded and processed.")
-                    st.session_state.chat_engine = ChatInterface() # Re-init chat engine
 
                 else:
                     progress_bar.progress(0)
                     status_text.empty()
                     st.sidebar.warning("No documents were able to be processed. Please check the file formats and contents.")
-                    st.session_state.chat_engine = None
         else:
             #Uploaded files is not change, just load message
-            if 'chat_engine' not in st.session_state:
-                st.session_state.chat_engine = ChatInterface()
             st.info("Documents not changed, skip load.")
             st.session_state.documents_loaded = True
     else:
-        st.session_state.documents_loaded = False
+         st.session_state.documents_loaded = False
 
     # Load context on startup
     context_manager.load_context_from_file()
     st.sidebar.success("Project context loaded.")
 
-    # Navigation (Streamlit pages)
-    pages = {
-        "Project Overview": "pages/0_Overview_SLC.py",
-        "Requirements Design (SRS)": "pages/1_Requirements_Design.py",
-        "Basic Design": "pages/2_Basic_Design.py",
-        "Detail Design": "pages/3_Detail_Design.py",
-        "Settings": "pages/5_Settings.py",
-        "About": "pages/6_About.py"
-    }
+    # Create tabs
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Overview", "Requirements", "Basic Design", "Settings", "About"])
 
-    selected_page = st.sidebar.selectbox("Select Page", list(pages.keys()))
+    # Load content for each tab
+    with tab1:
+        SLCChat()
+        
+    with tab2:
+        SLCRD()
 
-    # Load the selected page using Streamlit's page mechanism
-    if selected_page:
-        __import__(pages[selected_page].replace("/", ".")[:-3])
+    with tab3:
+        SLCBD()
+
+    with tab4:
+        SLCSettings()
+
+    with tab5:
+        SLCAbout()
 
     # Save context on exit (optional - use a button for manual saving)
     if st.sidebar.button("Save Project Context"):
         context_manager.save_context_to_file()
         st.sidebar.success("Project context saved.")
-
-    # Display the chat interface
-    if 'chat_engine' in st.session_state and st.session_state.documents_loaded:
-        st.session_state.chat_engine.display()
-    else:
-        st.info("Please upload and process documents to use the chat interface.")
-
 
 if __name__ == "__main__":
     main()
