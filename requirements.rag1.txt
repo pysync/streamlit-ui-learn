@@ -5,10 +5,14 @@ llama-index
 llama-index-embeddings-huggingface
 llama-index-llms-ollama
 llama-index-embeddings-ollama
-docx2txt
+
 faiss-cpu 
-tiktoken 
 chromadb 
+llama-index-vector-stores-chroma
+llama-index-vector-stores-faiss
+
+docx2txt
+tiktoken 
 pypdf
 python-docx
 pandas 

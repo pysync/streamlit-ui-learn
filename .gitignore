@@ -3,3 +3,6 @@ vector_db/
 *.pkl
 temp_files
 __pycache__
+*.db
+*.bin
+chroma_db
