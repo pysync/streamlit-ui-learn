@@ -166,18 +166,33 @@ def api_delete_artifacts_by_document(document_id: str, version: Optional[int] = 
 # Upload an artifact file
 # -----------------------------------------------------------------------------
 @router.post("/upload", response_model=ArtifactResponse, status_code=status.HTTP_201_CREATED)
-async def api_upload_artifact(file: UploadFile = File(...)):
+async def api_upload_artifact(workspace_id: int, file: UploadFile = File(...)):
+    """
+    Uploads a plain text file as an artifact.
+
+    Args:
+    - workspace_id: The workspace ID to associate the artifact with.
+    - file: The file to be uploaded.
+
+    Returns:
+    - The created artifact details.
+    """
+    # Validate file content type
     if file.content_type != "text/plain":
         raise HTTPException(status_code=400, detail="Only plain text files are supported.")
 
+    # Read the file content
     content_bytes = await file.read()
     try:
         text = content_bytes.decode("utf-8")
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="Error decoding file. Ensure it is UTF-8 encoded.")
 
+    # Use the file's name as the document_id
     document_id = file.filename
-    artifact = create_new_artifact(document_id, file.filename, text)
+
+    # Create the artifact using the workspace_id
+    artifact = create_new_artifact(workspace_id, document_id, file.filename, text)
     return artifact
 
 # for vector db store management

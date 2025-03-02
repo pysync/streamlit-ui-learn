@@ -11,7 +11,7 @@ import time
 reindexing_tasks = {}
 
 
-def reindex_all_documents():
+def reindex_all_documents(workspace_id: int):
     """
     Reindexes all artifacts from the database into the vector store.
     Returns a task ID for tracking the status.
@@ -22,7 +22,7 @@ def reindex_all_documents():
     reindexing_tasks[task_id] = {"status": "in-progress", "start_time": time.time()}
     
     # Fetch all artifacts from the database without pagination
-    artifacts, total = list_artifacts(limit=-1)  # Get all artifacts
+    artifacts, total = list_artifacts(workspace_id=workspace_id, limit=-1)  # Get all artifacts
     
     for artifact in artifacts:
         # Insert each artifact into the vector store (using document_id, title, and content)

@@ -18,9 +18,22 @@ def clear_db():
         session.exec(delete(Artifact))
         session.commit()
 
+# Helper function to create a workspace first
+def create_workspace():
+    payload = {
+        "title": "Test Workspace"
+    }
+    response = client.post("/workspaces/", json=payload)
+    assert response.status_code == 201
+    
+    print("Use workspace id: ", response.json()['id'])
+    
+    return response.json()["id"]
 
 def test_create_artifact():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     payload = {
+        "workspace_id": workspace_id,  # Pass workspace_id
         "document_id": "doc1",
         "title": "Test Title",
         "content": "Test Content",
@@ -37,13 +50,15 @@ def test_create_artifact():
     assert data["art_type"] == "doc"
 
 
+
 def test_list_artifacts():
-    response = client.post("/artifacts/", json={"document_id": "doc2", "title": "Title2", "content": "Content2", "art_type": "doc"})
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc2", "title": "Title2", "content": "Content2", "art_type": "doc"})
     assert response.status_code == 201
-    response = client.post("/artifacts/", json={"document_id": "doc3", "title": "Title3", "content": "Content3", "art_type": "doc"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc3", "title": "Title3", "content": "Content3", "art_type": "doc"})
     assert response.status_code == 201
     
-    response = client.get("/artifacts/", params={"limit": 10, "page": 1})
+    response = client.get("/artifacts/", params={"workspace_id": workspace_id, "limit": 10, "page": 1})
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, dict)
@@ -51,7 +66,8 @@ def test_list_artifacts():
 
 
 def test_get_artifact_by_id():
-    response = client.post("/artifacts/", json={"document_id": "doc4", "title": "Title4", "content": "Content4"})
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc4", "title": "Title4", "content": "Content4"})
     assert response.status_code == 201
     artifact_id = response.json()["id"]
     response = client.get(f"/artifacts/{artifact_id}")
@@ -61,8 +77,9 @@ def test_get_artifact_by_id():
 
 
 def test_get_first_version_artifact():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     # Create and update to have first versions
-    response = client.post("/artifacts/", json={"document_id": "doc5", "title": "Title5", "content": "Content5"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc5", "title": "Title5", "content": "Content5"})
     
     response = client.get("/artifacts/current/doc5")
     assert response.status_code == 200
@@ -73,8 +90,9 @@ def test_get_first_version_artifact():
 
 
 def test_get_current_artifact():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     # Create and update to have two versions
-    response = client.post("/artifacts/", json={"document_id": "doc5", "title": "Title5", "content": "Content5"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc5", "title": "Title5", "content": "Content5"})
     data = response.json()
     assert response.status_code == 201
     assert data["document_id"] == "doc5"
@@ -94,8 +112,9 @@ def test_get_current_artifact():
     assert data["version"] == 2
     
 def test_get_artifact_versions():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     # Create one artifact and update twice (3 versions total)
-    response = client.post("/artifacts/", json={"document_id": "doc6", "title": "Title6", "content": "Content6"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc6", "title": "Title6", "content": "Content6"})
     response = client.put("/artifacts/doc6/update", json={"title": "Title6 Updated", "content": "Content6 Updated"})
     response = client.put("/artifacts/doc6/update", json={"title": "Title6 Updated2", "content": "Content6 Updated2"})
     response = client.get("/artifacts/versions/doc6")
@@ -106,14 +125,15 @@ def test_get_artifact_versions():
 
 
 def test_search_artifacts():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     # Create artifacts with distinctive titles
-    response = client.post("/artifacts/", json={"document_id": "doc7", "title": "Alpha Title", "content": "Content7"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc7", "title": "Alpha Title", "content": "Content7"})
     assert response.status_code == 201  # Check that the creation succeeded
-    response = client.post("/artifacts/", json={"document_id": "doc8", "title": "Beta Title", "content": "Content8"})
+    response = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc8", "title": "Beta Title", "content": "Content8"})
     assert response.status_code == 201  # Check that the creation succeeded
 
     # Search for artifacts containing the keyword 'Alpha'
-    response = client.get("/artifacts/search", params={"keyword": "Alpha"})
+    response = client.get("/artifacts/search", params={"workspace_id": workspace_id, "keyword": "Alpha"})
     assert response.status_code == 200
     data = response.json()
 
@@ -122,7 +142,8 @@ def test_search_artifacts():
     assert data["items"][0]["title"] == "Alpha Title"
 
 def test_update_artifact_version():
-    client.post("/artifacts/", json={"document_id": "doc9", "title": "Title9", "content": "Content9"})
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc9", "title": "Title9", "content": "Content9"})
     response_update = client.put("/artifacts/doc9/update", json={"new_title": "Title9 Updated", "new_content": "Content9 Updated"})
     assert response_update.status_code == 200
     updated = response_update.json()
@@ -137,7 +158,8 @@ def test_update_artifact_version():
 
 
 def test_rollback_artifact_version():
-    response_create = client.post("/artifacts/", json={"document_id": "doc10", "title": "Title10", "content": "Content10"})
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    response_create = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc10", "title": "Title10", "content": "Content10"})
     assert response_create.status_code == 201
     response_update = client.put("/artifacts/doc10/update", json={"title": "Title10 Updated", "content": "Content10 Updated"})
     assert response_update.status_code == 200
@@ -151,7 +173,8 @@ def test_rollback_artifact_version():
 
 
 def test_delete_artifact_by_id():
-    res_create = client.post("/artifacts/", json={"document_id": "doc11", "title": "Title11", "content": "Content11"})
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    res_create = client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": "doc11", "title": "Title11", "content": "Content11"})
     artifact_id = res_create.json()["id"]
     response_delete = client.delete(f"/artifacts/{artifact_id}")
     assert response_delete.status_code == 204
@@ -160,9 +183,10 @@ def test_delete_artifact_by_id():
 
 
 def test_delete_artifacts_by_document():
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
     doc_id = "doc12"
     # Create two versions
-    client.post("/artifacts/", json={"document_id": doc_id, "title": "Title12", "content": "Content12"})
+    client.post("/artifacts/", json={"workspace_id": workspace_id, "document_id": doc_id, "title": "Title12", "content": "Content12"})
     client.put(f"/artifacts/{doc_id}/update", json={"new_title": "Title12 Updated", "new_content": "Content12 Updated"})
     # Delete only version 1
     response_del_version = client.delete(f"/artifacts/document/{doc_id}", params={"version": 1})
@@ -179,15 +203,26 @@ def test_delete_artifacts_by_document():
     assert remaining_all.status_code == 404
 
 
+# Test for uploading an artifact
 def test_upload_artifact():
+    # Step 1: Create a workspace and get the workspace_id
+    workspace_id = create_workspace()
+    
+    # Step 2: Prepare the file content for upload
     file_content = "Uploaded artifact content"
     file_bytes = file_content.encode("utf-8")
     file_obj = io.BytesIO(file_bytes)
     file_obj.name = "upload_test.txt"
+    
+    # Step 3: Upload the file with workspace_id as a query parameter
     response = client.post(
-        "/artifacts/upload",
-        files={"file": (file_obj.name, file_obj, "text/plain")}
+        "/artifacts/upload",  # The endpoint that handles file uploads
+        params={"workspace_id": workspace_id},  # Pass workspace_id as a query parameter
+        files={"file": (file_obj.name, file_obj, "text/plain")}  # File to be uploaded
     )
+    
+    # Step 4: Assert that the file upload was successful
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == "upload_test.txt"
+    assert data["workspace_id"] == workspace_id  # Check that the artifact was created under the correct workspace

@@ -6,7 +6,7 @@ from datetime import datetime
 
 #  Schema for creating a new artifact (POST request)
 class ArtifactCreate(BaseModel):
-    workspace_id: str
+    workspace_id: int
     title: str
     content: str
     document_id: str
