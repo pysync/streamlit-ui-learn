@@ -6,3 +6,19 @@ chardet
 graphviz 
 streamlit-agraph
 streamlit-mermaid
+
+# for sql db
+alembic
+sqlmodel
+
+# for api
+fastapi
+python-multipart
+
+# for model validate and settings
+pydantic
+pydantic-settings
+
+# for testing
+pytest 
+httpx

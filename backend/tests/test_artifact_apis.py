@@ -1,0 +1,193 @@
+import io
+import pytest
+from fastapi.testclient import TestClient
+from sqlmodel import Session, delete
+from backend.app import app
+from backend.models.artifact import Artifact
+from backend.config import db_engine
+from backend.config import init_db
+
+init_db()
+
+client = TestClient(app)
+
+# Clear the artifacts table before each test.
+@pytest.fixture(autouse=True)
+def clear_db():
+    with Session(db_engine) as session:
+        session.exec(delete(Artifact))
+        session.commit()
+
+
+def test_create_artifact():
+    payload = {
+        "document_id": "doc1",
+        "title": "Test Title",
+        "content": "Test Content",
+        "art_type": "doc"
+    }
+    response = client.post("/artifacts/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["document_id"] == "doc1"
+    assert data["title"] == "Test Title"
+    assert data["content"] == "Test Content"
+    assert data["version"] == 1
+    assert data["status"] == "current"
+    assert data["art_type"] == "doc"
+
+
+def test_list_artifacts():
+    response = client.post("/artifacts/", json={"document_id": "doc2", "title": "Title2", "content": "Content2", "art_type": "doc"})
+    assert response.status_code == 201
+    response = client.post("/artifacts/", json={"document_id": "doc3", "title": "Title3", "content": "Content3", "art_type": "doc"})
+    assert response.status_code == 201
+    
+    response = client.get("/artifacts/", params={"limit": 10, "page": 1})
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, dict)
+    assert len(data) >= 2
+
+
+def test_get_artifact_by_id():
+    response = client.post("/artifacts/", json={"document_id": "doc4", "title": "Title4", "content": "Content4"})
+    assert response.status_code == 201
+    artifact_id = response.json()["id"]
+    response = client.get(f"/artifacts/{artifact_id}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == artifact_id
+
+
+def test_get_first_version_artifact():
+    # Create and update to have first versions
+    response = client.post("/artifacts/", json={"document_id": "doc5", "title": "Title5", "content": "Content5"})
+    
+    response = client.get("/artifacts/current/doc5")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["document_id"] == "doc5"
+    assert data["status"] == "current"
+    assert data["version"] == 1
+
+
+def test_get_current_artifact():
+    # Create and update to have two versions
+    response = client.post("/artifacts/", json={"document_id": "doc5", "title": "Title5", "content": "Content5"})
+    data = response.json()
+    assert response.status_code == 201
+    assert data["document_id"] == "doc5"
+    assert data["status"] == "current"
+    assert data["version"] == 1
+    
+    response = client.put("/artifacts/doc5/update", json={"title": "Title5 Updated", "content": "Content5 Updated"})
+    assert response.status_code == 200
+    
+    response = client.get("/artifacts/current/doc5")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["document_id"] == "doc5"
+    assert data["status"] == "current"
+    assert data["title"] == "Title5 Updated"
+    assert data["content"] == "Content5 Updated"
+    assert data["version"] == 2
+    
+def test_get_artifact_versions():
+    # Create one artifact and update twice (3 versions total)
+    response = client.post("/artifacts/", json={"document_id": "doc6", "title": "Title6", "content": "Content6"})
+    response = client.put("/artifacts/doc6/update", json={"title": "Title6 Updated", "content": "Content6 Updated"})
+    response = client.put("/artifacts/doc6/update", json={"title": "Title6 Updated2", "content": "Content6 Updated2"})
+    response = client.get("/artifacts/versions/doc6")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 3  # initial + 2 updates
+
+
+def test_search_artifacts():
+    # Create artifacts with distinctive titles
+    response = client.post("/artifacts/", json={"document_id": "doc7", "title": "Alpha Title", "content": "Content7"})
+    assert response.status_code == 201  # Check that the creation succeeded
+    response = client.post("/artifacts/", json={"document_id": "doc8", "title": "Beta Title", "content": "Content8"})
+    assert response.status_code == 201  # Check that the creation succeeded
+
+    # Search for artifacts containing the keyword 'Alpha'
+    response = client.get("/artifacts/search", params={"keyword": "Alpha"})
+    assert response.status_code == 200
+    data = response.json()
+
+    # Assert that only one result is returned
+    assert len(data["items"]) == 1  # Make sure the result is correct, based on 'items'
+    assert data["items"][0]["title"] == "Alpha Title"
+
+def test_update_artifact_version():
+    client.post("/artifacts/", json={"document_id": "doc9", "title": "Title9", "content": "Content9"})
+    response_update = client.put("/artifacts/doc9/update", json={"new_title": "Title9 Updated", "new_content": "Content9 Updated"})
+    assert response_update.status_code == 200
+    updated = response_update.json()
+    assert updated["version"] == 2
+    # Verify that the previous version is archived
+    response_versions = client.get("/artifacts/versions/doc9")
+    versions = response_versions.json()
+    archived = [v for v in versions if v["status"] == "archived"]
+    current = [v for v in versions if v["status"] == "current"]
+    assert len(archived) == 1
+    assert len(current) == 1
+
+
+def test_rollback_artifact_version():
+    response_create = client.post("/artifacts/", json={"document_id": "doc10", "title": "Title10", "content": "Content10"})
+    assert response_create.status_code == 201
+    response_update = client.put("/artifacts/doc10/update", json={"title": "Title10 Updated", "content": "Content10 Updated"})
+    assert response_update.status_code == 200
+    response_rollback = client.post("/artifacts/doc10/rollback", json={"target_version": 1})
+    assert response_rollback.status_code == 200
+    data = response_rollback.json()
+    # The rolled-back version should have the original title and content.
+    assert data["title"] == "Title10"
+    # Its version should be greater than the previous current version.
+    assert data["version"] > 1
+
+
+def test_delete_artifact_by_id():
+    res_create = client.post("/artifacts/", json={"document_id": "doc11", "title": "Title11", "content": "Content11"})
+    artifact_id = res_create.json()["id"]
+    response_delete = client.delete(f"/artifacts/{artifact_id}")
+    assert response_delete.status_code == 204
+    response_get = client.get(f"/artifacts/{artifact_id}")
+    assert response_get.status_code == 404
+
+
+def test_delete_artifacts_by_document():
+    doc_id = "doc12"
+    # Create two versions
+    client.post("/artifacts/", json={"document_id": doc_id, "title": "Title12", "content": "Content12"})
+    client.put(f"/artifacts/{doc_id}/update", json={"new_title": "Title12 Updated", "new_content": "Content12 Updated"})
+    # Delete only version 1
+    response_del_version = client.delete(f"/artifacts/document/{doc_id}", params={"version": 1})
+    assert response_del_version.status_code == 204
+    remaining = client.get(f"/artifacts/versions/{doc_id}")
+    remaining_data = remaining.json()
+    # Expect only one version remains.
+    assert len(remaining_data) == 1
+    # Now delete all versions.
+    response_del_all = client.delete(f"/artifacts/document/{doc_id}")
+    assert response_del_all.status_code == 204
+    remaining_all = client.get(f"/artifacts/versions/{doc_id}")
+    # When no versions exist, we expect a 404.
+    assert remaining_all.status_code == 404
+
+
+def test_upload_artifact():
+    file_content = "Uploaded artifact content"
+    file_bytes = file_content.encode("utf-8")
+    file_obj = io.BytesIO(file_bytes)
+    file_obj.name = "upload_test.txt"
+    response = client.post(
+        "/artifacts/upload",
+        files={"file": (file_obj.name, file_obj, "text/plain")}
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["title"] == "upload_test.txt"

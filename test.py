@@ -1,32 +1,16 @@
-import asyncio
-from llama_index.core.agent.workflow import AgentWorkflow
-from llama_index.llms.ollama import Ollama
+from backend.rag.index import chroma_collection
+from backend.rag.crud import insert_doc, update_doc, delete_doc
+from backend.rag.index import vector_index
+
+#insert_doc("doc-1", "Test Document 1", "This is a test document for indexing 1")
+ 
+ret = chroma_collection.get()
+print(ret)
+
+#vector_index.delete("cf978473-9710-4433-a4a5-8adeceab012c")
+#update_doc("doc-1", "Test Document 2", "This is a test document for indexing 2")
+#ret = chroma_collection.get()
+#print(ret)
 
 
-OLLAMA_HOST = "http://10.1.11.60:11434"
-LLM_MODEL = "deepseek-r1"  # Choose a model supported by Ollama
-
-# Define a simple calculator tool
-def multiply(a: float, b: float) -> float:
-    """Useful for multiplying two numbers."""
-    return a * b
-
-
-# Create an agent workflow with our calculator tool
-agent = AgentWorkflow.from_tools_or_functions(
-    [multiply],
-    llm=Ollama(model=LLM_MODEL, base_url=OLLAMA_HOST, request_timeout=360.0),
-    system_prompt="You are a helpful assistant that can multiply two numbers.",
-)
-
-
-async def main():
-    # Run the agent
-    response = await agent.run("What is 1234 * 4567?")
-    print(str(response))
-
-
-# Run the agent
-if __name__ == "__main__":
-    asyncio.run(main())
 
