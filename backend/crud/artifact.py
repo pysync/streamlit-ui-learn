@@ -228,6 +228,22 @@ def rollback_artifact_version(document_id: str, target_version: int) -> Artifact
         status="current"
     )
 
+def set_artifact_indexed(internal_artifact_id: int) -> Artifact:
+    """
+    Set indexed time of the document (by internal_artifact_id).
+    """
+
+    # Set indexed time and indexed id
+    with Session(db_engine) as session:
+        artifact = session.get(Artifact, internal_artifact_id)
+        if artifact:
+            # Mark the current artifact as archived and update the timestamp
+            artifact.indexed_at = datetime.datetime.now()  # Set to current datetime
+            session.add(artifact)
+            session.commit()  # Commit the archive update
+            return artifact
+
+
 def delete_artifact_by_id(internal_id: int) -> Optional[Artifact]:
     """
     Delete an artifact by its internal id.

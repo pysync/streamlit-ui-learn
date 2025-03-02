@@ -22,6 +22,12 @@ class ArtifactUpdate(BaseModel):
 
 class RollbackRequest(BaseModel):
     target_version: int
+
+class ReIndexRequest(BaseModel):
+    workspace_id: int
+
+class ClearIndexRequest(BaseModel):
+    workspace_id: int
     
 #  Schema for returning artifact details (GET responses)
 class ArtifactResponse(BaseModel):
@@ -32,6 +38,7 @@ class ArtifactResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: Optional[datetime] = None
+    indexed_at: Optional[datetime] = None
     content: Optional[str] = None
     workspace_id: int = None
     document_id: str

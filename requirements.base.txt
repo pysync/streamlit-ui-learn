@@ -4,8 +4,11 @@ watchdog
 streamlit
 chardet
 graphviz 
+streamlit-aggrid # MIT license
 streamlit-agraph
 streamlit-mermaid
+streamlit_extras
+
 
 # for sql db
 alembic
@@ -22,3 +25,5 @@ pydantic-settings
 # for testing
 pytest 
 httpx
+
+# https://github.com/okld/streamlit-elements

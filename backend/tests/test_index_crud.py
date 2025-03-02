@@ -51,7 +51,7 @@ def insert_and_index_artifact(workspace_id: int, doc_id: str, title: str, conten
     create_new_artifact(workspace_id, doc_id, title, content)
     
     # Insert the document into the vector store (chroma collection)
-    insert_doc(doc_id, title, content)
+    insert_doc(workspace_id, doc_id, title, content)
 
 # Test case to verify that documents are indexed properly in the vector store
 def test_index_artifact_in_vector_store(workspace):

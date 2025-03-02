@@ -5,6 +5,8 @@ from backend.schemas.artifact import (
     ArtifactCreate,
     ArtifactUpdate,
     RollbackRequest,
+    ReIndexRequest,
+    ClearIndexRequest,
     ArtifactResponse,
     PaginatedResponse
 )
@@ -197,23 +199,40 @@ async def api_upload_artifact(workspace_id: int, file: UploadFile = File(...)):
 
 # for vector db store management
 @router.post("/artifacts/clear_index")
-async def clear_vector_store():
+async def clear_vector_store(data: ClearIndexRequest):
     """
     API to clear the vector store index (ChromaDB).
     """
-    result = clear_index()
+    result = clear_index(data.workspace_id)
     return result
 
-@router.post("/artifacts/reindex_all")
-async def reindex_all():
+
+@router.post("/", response_model=ArtifactResponse,  status_code=status.HTTP_201_CREATED)
+def api_create_artifact(artifact_data: ArtifactCreate):
+    artifact = create_new_artifact(
+        workspace_id=artifact_data.workspace_id,
+        document_id=artifact_data.document_id,
+        title=artifact_data.title,
+        content=artifact_data.content,
+        art_type=artifact_data.art_type
+    )
+    return artifact
+
+
+@router.post("/reindex_all", status_code=status.HTTP_201_CREATED)
+def reindex_all(data: ReIndexRequest):
     """
     API to reindex all documents in the vector store. Returns task ID for status tracking.
     """
-    result = reindex_all_documents()
-    return result
+    try:
+        result = reindex_all_documents(data.workspace_id)
+        return {"message": f"indexing.."}
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Reindex Failed.")
 
-@router.get("/artifacts/reindex_status/{task_id}")
-async def get_status(task_id: str):
+@router.get("/reindex_status/{task_id}")
+def get_status(task_id: str):
     """
     API to get the status of reindexing by task ID.
     """
@@ -222,8 +241,8 @@ async def get_status(task_id: str):
         raise HTTPException(status_code=404, detail="Task ID not found.")
     return result
 
-@router.get("/artifacts/reindex_status")
-async def get_all_status():
+@router.get("/reindex_status")
+def get_all_status():
     """
     API to get the status of all reindexing tasks.
     """

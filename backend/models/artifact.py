@@ -18,6 +18,10 @@ class Artifact(SQLModel, table=True):
     )
     created_at: str = Field(default_factory=lambda: datetime.datetime.now().isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.datetime.now().isoformat())
+    
+    # field for manage indexing with vectordb
+    indexed_at: Optional[str] = None # time index
+
 
     # Optional reference to workspace
     workspace_id: Optional[int] = Field(default=None, foreign_key="workspace.id")
