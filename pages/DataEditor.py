@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 def load_data():
     # In a real application, this would load from your database
@@ -16,6 +17,12 @@ def main():
     # Load initial data
     df = load_data()
 
+    # Use AG
+    gb = GridOptionsBuilder.from_dataframe(df)
+    gb.configure_side_bar()
+    go = gb.build()
+    AgGrid(df, gridOptions=go, rowSelection='mutiple')
+    
     # Make dataframe editable
     edited_df = st.data_editor(
         df,
@@ -44,6 +51,7 @@ def main():
     selected_rows = st.session_state["data_editor"].get("selected_rows", [])
 
     if selected_rows:
+        st.write(selected_rows)
         if st.button("Delete Selected Rows"):
             # Delete rows from dataframe
             edited_df = edited_df.drop(selected_rows)
