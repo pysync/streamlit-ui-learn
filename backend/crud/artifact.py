@@ -228,6 +228,45 @@ def rollback_artifact_version(document_id: str, target_version: int) -> Artifact
         status="current"
     )
 
+def set_artifact_meta(
+    document_id: str,
+    new_title: Optional[str] = None,
+    new_content: Optional[str] = None,
+    new_dependencies: Optional[Dict] = None
+) -> Artifact:
+    """
+    Updates the metadata (title, content, dependencies) of the current version of an artifact
+    without creating a new version or archiving the existing one.
+    """
+    # Fetch the current artifact based on document_id.
+    current = get_current_artifact(document_id)
+    if not current:
+        raise Exception(f"Current artifact for document {document_id} not found.")
+
+    # Update the artifact's metadata in place
+    with Session(db_engine) as session:
+        artifact = session.get(Artifact, current.id)
+        if artifact:
+            # Update title if provided
+            if new_title is not None:
+                artifact.title = new_title
+            # Update content if provided
+            if new_content is not None:
+                artifact.content = new_content
+            # Update dependencies if provided
+            if new_dependencies is not None:
+                artifact.dependencies = new_dependencies
+
+            # Update the timestamp
+            artifact.updated_at = datetime.datetime.now()
+
+            session.add(artifact)
+            session.commit()
+            session.refresh(artifact) # Refresh to get the latest state from the database
+            return artifact
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artifact not found in session.")
+        
 def set_artifact_indexed(internal_artifact_id: int) -> Artifact:
     """
     Set indexed time of the document (by internal_artifact_id).

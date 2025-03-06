@@ -1,5 +1,6 @@
 import io
 import pytest
+from fastapi import status, HTTPException
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 from backend.app import app
@@ -9,7 +10,7 @@ from backend.config import init_db
 
 init_db()
 
-client = TestClient(app)
+client = TestClient(app) 
 
 # Clear the artifacts table before each test.
 @pytest.fixture(autouse=True)
@@ -226,3 +227,52 @@ def test_upload_artifact():
     data = response.json()
     assert data["title"] == "upload_test.txt"
     assert data["workspace_id"] == workspace_id  # Check that the artifact was created under the correct workspace
+
+def test_set_artifact_meta_api():
+    """
+    Test the PUT /artifacts/{document_id}/setmeta API endpoint to update artifact metadata.
+    """
+    workspace_id = create_workspace()  # Create workspace and get workspace_id
+    
+    # Step 1: Create an initial artifact
+    create_payload = {
+        "workspace_id": workspace_id, 
+        "document_id": "doc_meta_api_test", 
+        "title": "Initial API Title", 
+        "content": "Initial API Content",
+        "art_type": "doc"
+    }
+    response_create = client.post("/artifacts/", json=create_payload)
+    assert response_create.status_code == status.HTTP_201_CREATED
+    initial_data = response_create.json()
+    document_id = initial_data["document_id"]
+    initial_version = initial_data["version"]
+
+    # Step 2: Define updated metadata payload
+    update_payload = {
+        "title": "Updated API Title",
+        "content": "Updated API Content",
+        "art_type": "doc",
+        "dependencies": [1, 2]
+    }
+
+    # Step 3: Call the /setmeta endpoint
+    response_update = client.put(f"/artifacts/{document_id}/setmeta", json=update_payload)
+    assert response_update.status_code == status.HTTP_200_OK
+    updated_data = response_update.json()
+
+    # Step 4: Assertions to verify metadata update
+    assert updated_data["document_id"] == document_id
+    assert updated_data["title"] == update_payload["title"]
+    assert updated_data["content"] == update_payload["content"]
+    assert updated_data["dependencies"] == update_payload["dependencies"]
+    assert updated_data["version"] == initial_version # Version should NOT change
+    assert updated_data["status"] == "current"
+
+    # Step 5: Optionally, fetch the artifact again to double-check persistence in DB
+    response_fetch = client.get(f"/artifacts/current/{document_id}")
+    assert response_fetch.status_code == status.HTTP_200_OK
+    fetched_data = response_fetch.json()
+    assert fetched_data["title"] == update_payload["title"]
+    assert fetched_data["content"] == update_payload["content"]
+    assert fetched_data["version"] == initial_version

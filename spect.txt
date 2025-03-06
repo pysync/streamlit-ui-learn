@@ -9,6 +9,20 @@ I building a software development tools - mainly use for first harf-phases in SD
 (3) detail design (DD): output should is detailed of BD, and use ready for code.
 
 As workflow, 
+- first screen when start up, should show list of Workspace, screen also have CRUD action
+- when user select one, will load screen Working Space -> that screen is Main App 
+( like Slack, when user go one workspace - slackchannel, every things , function can do be in that Working Space)
+- Working Space should be design for easy work. in this working space, bellow data is center:
+
+1. Artifact, that is abstraction data with type is: Note, Document, Basic Design, Detail Design, API List, Screen List every things.
+2. To create Artifact, user can press button New then show Popup to enter info detail or upload file 
+3. Artifact is core data of system, so every tools in that workspace is working on that 
+4. When first go Working space, we should see on tab: is free note -> that allow user quick note ( = default artifact note)
+At sidebar will display list of current artifact have in working space.
+5. in main screen (right content), let's have tabs: note -> copilot ai (chat) -> screen maps -> api list ->.. so on.
+that top tabs can scroll to acess more tab. and can close.
+
+
 - system will have first screen is free note and chat to interactive with system
 - have side bar, and can upload related to project files -> after upload use as context.
 - then have multi tabs, to switch between screen that work with above output.

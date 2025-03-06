@@ -1,5 +1,17 @@
 import pandas as pd
 
+# define estimate data migration phase
+# https://aistudio.google.com/prompts/1VVGuPnrDZRB0-bkVGzA8QNcZbdjw1dEV
+# count tables + relations ship
+# 1 table	"confirm old  spect"	thiết kế logic	write code	test	
+#  0.25	0.5	0.25	0.125	1.125 md
+# Estimation Phase https://docs.google.com/spreadsheets/d/1hh4DtaohURyXju_B9xKEEdk6AnC5MejPGHKN1WMpd1s/edit?gid=444734675#gid=444734675
+# Breakdown phase
+# Estimate for each phase
+# Calc cost seperate cost by V-model (wirte test it, test it)
+
+
+
 # Load the Excel file
 file_path = "./full requirements.xlsx"
 xls = pd.ExcelFile(file_path)

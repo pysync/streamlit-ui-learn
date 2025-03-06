@@ -1,0 +1,183 @@
+ You are an expert in UI/UX development, Let's help me analytics bellow requirement in deep and
+ Give the ways to implementation and project outline for easy maintain   
+
+I building a software development tools - mainly use for first harf-phases in SDLC, that include 
+
+(1) requirement design ( RD ) should output:  software  requirement spect - SRS document 
+(2) basic design (BD)  should output: related BD documents, for example: screen list, function list,
+ database table schema list and detail, API list, batch list , sequence diagram, .. etc..
+(3) detail design (DD): output should is detailed of BD, and use ready for code.
+
+Screen Requirement, 
+- first screen when start up, should show list of Workspace, screen also have CRUD action
+- when user select one, will load screen Working Space -> that screen is Main App 
+( like Slack, when user go one workspace - slackchannel, every things , function can do be in that Working Space)
+- Working Space should be design for easy work. in this working space, bellow data is center:
+
+1. Artifact, that is abstraction data with type is: Note, Document, Basic Design, Detail Design, API List, Screen List every things.
+2. To create Artifact, user can press button New then show Popup to enter info detail or upload file 
+3. Artifact is core data of system, so every tools in that workspace is working on that,
+   Artifact is equals User uploaded docs, system generated RD, BD, DD document
+   And allow user working on (edit, update), and chat with AI LLM to genrate.
+   for how to display chat box, let's things latter after overall UI/UX complete.
+4. When first go Working space, we should see on tab: is free note -> that allow user quick note ( = default artifact note)
+At sidebar will display list of current artifact have in working space.
+5. in main screen (right content), let's have tabs: note -> copilot ai (chat) -> screen maps -> api list ->.. so on.
+that top tabs can scroll to acess more tab. and can close.
+
+Let's use bellow techstack help me setup project and design screen.
++ reactjs, router, material ui (mui) 
+note: Everything, should use default component of material ui is ok.
++ because Working space is complex, so ensure setup center context for acess and working with data state 
++ for API, let's write one client.js file expose all needed function for working with api endpoints
+
+Ensure UI/UX, and Layout is look good, clean, and smart.
+
+
+------
+1. Overview & Key Flows
+Your tool is designed to support the early phases of SDLC by generating SRS (for requirements), Basic Design (BD), and Detailed Design (DD) documents. The core concepts include:
+
+Workspace Listing Screen:
+
+Purpose: List workspaces with full CRUD operations.
+Behavior: On startup, users see a list of available workspaces. Once a workspace is selected, the system loads the “Working Space” view.
+Working Space (Main App):
+
+Inspired by Slack’s workspace model:
+Sidebar: Displays a list of “Artifacts” (core entities like Notes, RD, BD, DD, API List, etc.).
+Main Content Area: Contains tabbed views (e.g., Note, AI Copilot Chat, Screen Maps, API List). Tabs should be scrollable and closable to handle overflow.
+Artifact Operations:
+Create (via a “New” button that opens a popup), edit, update, and integration with an AI LLM for content generation.
+The default artifact is a “free note” to allow quick jotting of ideas.
+Central Data & API Integration:
+
+Artifact and Workspace are the primary data models.
+A single client.js module will wrap all API endpoints (already provided on the backend) and provide functions for CRUD operations and advanced tasks like reindexing.
+2. Implementation Strategies & UI/UX Considerations
+a. Component & Layout Design
+Material UI (MUI) Components:
+
+Use MUI’s default components for consistency.
+AppBar / Toolbar: For the top navigation (scrollable tabs).
+Drawer or Sidebar: For displaying the list of artifacts within a workspace.
+Cards / ListItems: For individual workspace and artifact representations.
+Dialogs/Popups: For creating and updating workspaces/artifacts.
+Page Separation:
+
+Landing Page: For workspace listing with CRUD operations.
+Working Space Page: A more complex page that integrates a sidebar, top tab navigation, and content panels.
+b. State Management & Data Flow
+Central Context:
+
+Use React’s Context API (or Redux if needed) to create a central state for the current workspace and artifact data.
+Example: A WorkspaceContext can hold the active workspace details and artifact list, and provide functions to update state across components.
+Routing:
+
+Utilize React Router for seamless navigation between the workspace list and the detailed working space.
+Define routes such as /workspaces for listing and /workspace/:id for the working space view.
+c. API Integration
+client.js Module:
+Create a dedicated file to encapsulate all API calls.
+Example functions include getWorkspaces, createWorkspace, listArtifacts, createArtifact, etc.
+This module abstracts the API logic so that UI components simply call these functions and update local state accordingly.
+Error Handling & Loading States:
+Implement global error handling (using context or a dedicated hook) and loading indicators (e.g., using MUI’s CircularProgress) to improve UX during API calls.
+d. Responsive & Clean Design
+Layout Consistency:
+Adopt a grid or flex layout to ensure that both the sidebar and the main content are responsive.
+Ensure that the tab system in the main content is scrollable and allows closing/reordering tabs.
+Interaction Feedback:
+Use MUI’s Snackbar or Alert components for user notifications on actions (e.g., artifact created, workspace updated).
+
+
+Suggest By AI:
+II. UI/UX Considerations
+
+Clean Layout: The WorkspacePage provides a good starting point for a clean and organized layout:
+
+Left sidebar for navigation (artifacts).
+
+Top tabs for switching between main views.
+
+Main content area for displaying the selected view.
+
+Artifact Display:
+
+Use ArtifactCard.tsx to display individual artifacts.
+
+Consider using a grid layout for ArtifactList.tsx.
+
+Implement filtering and sorting options for artifacts.
+
+"New" Artifact Creation:
+
+A Material UI Dialog is a good choice for the "New Artifact" popup.
+
+Use a form with appropriate input fields for the artifact type.
+
+Consider using a rich text editor (e.g., Quill, Draft.js) for the artifact content.
+
+AI Copilot Chat:
+
+Use a separate component for the AI chat interface.
+
+Consider using a library like react-chat-window or building your own chat interface.
+
+Implement a mechanism to send artifact content to the AI and display the AI's responses.
+
+Screen Maps and API List:
+
+These sections will likely require custom components to display the data in a meaningful way.
+
+Consider using libraries like react-flow for screen maps and react-table for API lists.
+
+Accessibility:
+
+Use Material UI components correctly to ensure accessibility.
+
+Provide proper labels for form elements.
+
+Use ARIA attributes where necessary.
+
+Responsiveness:
+
+Use Material UI's responsive grid system to ensure the application looks good on different screen sizes.
+
+-- AI ASK 
+i already implemented first screen ( Workspaces List), so now you don't need help me
+
+our project is created with javascript not typescript, so please keep javascript
+
+your UI/UX considerations is very good, for main WorkspacePage ( i call: WorkingSpacePage)
+please help me, but let's help me continue planing for layout and working flow for my app.
+please thinkings about software development lifecycle, this app should use for developer, system architector, project owner  at first stage of project.
+
+Step 1: Project planing -> artifact type: Idea note freestyle in markdown, draft wireframe in excalidraw( use for project owner) , that note can break down todo worklist (project backlog - like trello style)
+
+Step 2: make improvement from idea, product backlog, Make details requirements, system development spect SRS -> use for project owner, and software development expert  (consulting level)
+should use input from step 1 and refine requirements, breakdown to function requirements, non-requirements, some bussiness workflow’s if have , techstack requirements, infra requirements etc.. more  -> save as artifact type: document srs
+
+From that step, maybe we will have functions list and scoped out works, and can input back to (Step 1 planing step) to tagging milestones, which functions for each milestones or pharse. (some functions maybe can develop later, and maybe it still is just idea in project backlog)
+and function list can break down and manager in product backlog is an ordered list of tasks, features, or items like asana style.
+
+Step 3: More refine requirements break down to basic design: screen maps, screen list, api list, database ER digram, core entities list, sequence diagrams, activity diagrams, system overview architecture digram and more. each artifact from function list, to generated artifacts(for ex: api list) should be tagged, versioning and make dependences each other consistently.
+
+( Step 4: just output documents to development phase - export to readable docs, for ex: markdown file, exel file, pdf file, and for function list, screen list can export to wbs style file. ( exels)
+
+For all above step (1->3):
+
+I will develop as style AI First and Human In Loop, it's mean at each step i can invoke LLM and query, ask to improvement content or auto generate content from first step, but still allow user can manual edit, update. you can thinks we will have button AI gen / improve in each step, and can invoke Chat LLM to ask AI in each step ( each place ).
+
+For working with document and system design, Text Editor (Markdown) is key for all step, but because we want "AI First and Human In Loop" so that Editor must allow i have context menu to Ask AI at each place. and user can selected text and show context menu to choice option to "Make as .." for ex: API list, it's mean user can pickup text in any editor and make  or update Artifact. and for work with architecture design, sequence digram, etc.. should have free style draw like excalidraw library, buts content after design also can select and save as artifact.
+and AI LLM can invoke ( get content) or generate digram can display in excalidraw ( I thinks it's nodes in excalidraw).
+
+For ER Digram and other, i think can generate nodes or mermaid diagram text and display in excalidraw still ok.
+
+OK, with above requirements please help:
+
+Analytics and consider about workflow, screen maps for that web application, ensure it's simple and good.
+
+consider for screen layout UI/UX, which should have.
+
+with above requirements, please consider the way implement. dont need write code right now.

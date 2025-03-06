@@ -12,6 +12,7 @@ from backend.crud.artifact import (
     get_artifact_by_internal_id,
     get_current_artifact,
     get_artifact_versions,
+    set_artifact_meta,
     update_artifact_version,
     rollback_artifact_version,
     delete_artifact_by_id,
@@ -152,6 +153,39 @@ def test_rollback_artifact_version(workspace):
     # New version should be greater than the previous current version.
     assert rolled_back.version == artifact2.version + 1
 
+def test_set_artifact_meta(workspace):
+    """
+    Test updating artifact metadata using set_artifact_meta function
+    without creating a new version.
+    """
+    # Step 1: Create an artifact
+    initial_artifact = create_new_artifact(workspace.id, "doc_meta_test", "Original Title", "Original Content", art_type="doc")
+    initial_version = initial_artifact.version # Capture initial version
+
+    # Step 2: Define updated metadata
+    updated_title = "Updated Title for Meta Test"
+    updated_content = "Updated Content for Meta Test"
+
+    # Step 3: Call set_artifact_meta to update metadata
+    updated_artifact = set_artifact_meta(
+        document_id="doc_meta_test", # Use document_id to identify the artifact
+        new_title=updated_title,
+        new_content=updated_content
+    )
+
+    # Step 4: Assert that the artifact exists after update
+    assert updated_artifact is not None
+    fetched_artifact = get_artifact_by_internal_id(updated_artifact.id)
+    assert fetched_artifact is not None
+
+    # Step 5: Assert that metadata has been updated correctly
+    assert fetched_artifact.title == updated_title
+    assert fetched_artifact.content == updated_content
+
+    # Step 6: Assert that the version number has NOT changed
+    assert fetched_artifact.version == initial_version
+    assert fetched_artifact.version == 1 # Assuming initial version was 1, if not adjust accordingly
+    
 def test_delete_artifact_by_id(workspace):
     artifact = create_new_artifact(workspace.id, "doc10", "Title 10", "Content 10")
     deleted = delete_artifact_by_id(artifact.id)

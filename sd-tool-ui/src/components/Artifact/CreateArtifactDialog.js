@@ -19,13 +19,14 @@ import {
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
 import { useError } from '../../contexts/ErrorContext';     // Import Error Context
+import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
 
 const CreateArtifactDialog = ({ open, onClose }) => {
     const [title, setTitle] = useState('');
     const [artType, setArtType] = useState('note');
     const [textContent, setTextContent] = useState('');
     const [ uploadFile, setUploadFile] = useState(null); // State for uploaded file
-    const { currentWorkspace, execCreateArtifact, execUpdateArtifact, uploadArtifact, } = useWorkspace();
+    const { currentWorkspace, execCreateArtifact, execUpdateArtifact, uploadArtifact, execSetArtifactMeta} = useWorkspace();
     const { showLoading, hideLoading } = useLoading();    // Use Loading Context
     const { showError, clearError } = useError();        // Use Error Context
 
@@ -39,8 +40,9 @@ const CreateArtifactDialog = ({ open, onClose }) => {
                 return;
             }
 
+            const document_id = generateDocumentId(title); // Generate document_id here
             const artifactData = {
-                document_id: title.toLowerCase().replace(/\s+/g, '-'),
+                document_id: document_id,
                 title: title,
                 content: textContent,
                 art_type: artType,
@@ -76,7 +78,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
                 content: null, // Content is already in the uploaded file
                 dependencies: null, // No dependencies for now
             };
-            await execUpdateArtifact(documentId, updateData, artType); // Pass artType as separate param based on API
+            await execSetArtifactMeta(documentId, updateData, artType); // Pass artType as separate param based on API
             onClose();
 
         } catch (uploadError) {

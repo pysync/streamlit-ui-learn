@@ -166,6 +166,21 @@ export async function updateArtifactVersion(document_id, artifactData) {
 }
 
 /**
+ * Set artifact metadata: Update current version without creating a new version.
+ */
+export async function setArtifactMeta(document_id, artifactData) {
+  // artifactData should have: title, content, dependencies (optional)
+  const { title, content, dependencies } = artifactData;
+  const url = `${BASE_URL}/artifacts/${document_id}/setmeta`;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, content, dependencies }),
+  });
+  return checkResponse(response);
+}
+
+/**
  * Rollback an artifact to a previous version.
  */
 export async function rollbackArtifactVersion(document_id, target_version) {

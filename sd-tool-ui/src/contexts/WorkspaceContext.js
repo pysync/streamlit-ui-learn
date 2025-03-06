@@ -5,6 +5,7 @@ import { getWorkspace,
         listArtifacts,
         createArtifact,
         updateArtifactVersion,
+        setArtifactMeta,
         deleteArtifactById,
         uploadArtifact
       } from '../services/client';
@@ -96,6 +97,20 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         }
     };
 
+    const execSetArtifactMeta = async (documentId, artifactData) => {
+        showLoading();
+        try {
+            const updatedArtifact = await setArtifactMeta(documentId, artifactData);
+            await execLoadArtifacts();
+            return updatedArtifact;
+        } catch (error) {
+            console.error("Error setmeta data for artifact:", error);
+            showError("Failed to setmeta data for artifact.");
+            throw error;
+        } finally {
+           hideLoading();
+        }
+    };
 
     const value = {
         currentWorkspace,
@@ -106,6 +121,8 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         execCreateArtifact,
         execUpdateArtifact,
         uploadArtifact,
+        execSetArtifactMeta,
+        updateArtifactVersion,
     };
 
     return (

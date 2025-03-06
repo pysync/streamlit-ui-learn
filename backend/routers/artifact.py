@@ -18,6 +18,7 @@ from backend.crud.artifact import (
     get_current_artifact,
     get_artifact_versions,
     update_artifact_version,
+    set_artifact_meta,
     rollback_artifact_version,
     delete_artifact_by_id,
     delete_artifacts_by_document,
@@ -130,6 +131,20 @@ def api_update_artifact_version(document_id: str, update_data: ArtifactUpdate):
         update_data.title,
         update_data.content,
         update_data.dependencies,
+    )
+        
+    return artifact
+
+# -----------------------------------------------------------------------------
+# Set artifact meta data : without archive current version and and create a new version
+# -----------------------------------------------------------------------------
+@router.put("/{document_id}/setmeta", response_model=ArtifactResponse, status_code=status.HTTP_200_OK)
+def api_set_artifact_meta(document_id: str, update_data: ArtifactUpdate):
+    artifact = set_artifact_meta(
+        document_id,
+        update_data.title,
+        update_data.content,
+        update_data.dependencies
     )
         
     return artifact

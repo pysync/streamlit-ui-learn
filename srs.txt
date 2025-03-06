@@ -1,3 +1,6 @@
+# sameple design document in jp
+# https://drive.google.com/drive/folders/1ZHB-7ZyB41ne1p9pNPjONE1Wd7Pxx4Ob?usp=drive_link
+
 high-level System Requirements Specification (SRS)
 
 System Requirements Specification (SRS)
