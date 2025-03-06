@@ -26,11 +26,13 @@ const drawerWidth = 240;
 const WorkspaceSidebar = () => {
     const [selectedArtifact, setSelectedArtifact] = useState(null);
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);
-    const { artifacts } = useWorkspace(); // Consume artifacts from context
+    const { artifacts, addOpenedArtifact, setActiveArtifact } = useWorkspace(); // Consume artifacts from context
 
     const handleArtifactSelect = (artifact) => {
         setSelectedArtifact(artifact);
         console.log("Selected Artifact:", artifact);
+        addOpenedArtifact(artifact); // Add selected artifact to opened list
+        setActiveArtifact(artifact.document_id); // Set active artifact in context
     };
 
     const handleCreateArtifactDialogOpen = () => {
@@ -46,7 +48,6 @@ const WorkspaceSidebar = () => {
     return (
         <Drawer
             sx={{
-                width: drawerWidth,
                 flexShrink: 0,
                 '& .MuiDrawer-paper': {
                     width: drawerWidth,

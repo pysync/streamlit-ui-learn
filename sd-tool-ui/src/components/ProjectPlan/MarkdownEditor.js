@@ -1,77 +1,98 @@
 // src/components/ProjectPlan/MarkdownEditor.js
-import React, { useState } from 'react';
-import { TextField, Button, Box, CircularProgress , Typography} from '@mui/material';
-import aiService  from '../../services/aiService'; // Adjust path if needed
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 
-const MarkdownEditor = () => {
-    const [markdownContent, setMarkdownContent] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
+import {
+    Box,
+    Toolbar,
+    Button,
+    Paper,
+    Typography,
+    IconButton,
+    Tooltip,
+    CircularProgress,
+    TextField,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit'; // Import EditIcon
+import SaveIcon from '@mui/icons-material/Save'; // Import SaveIcon
+import { aiService } from '../../services/aiService';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
+import { useError } from '../../contexts/ErrorContext';     // Import Error Context
+import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
 
-    const handleAIImprove = async () => {
-        setIsGenerating(true);
-        setErrorMessage('');
-        try {
-            const improvedText = await aiService.generateText(`Improve the following text: ${markdownContent}`);
-            setMarkdownContent(improvedText);
-        } catch (error) {
-            console.error("AI Error:", error);
-            setErrorMessage("Failed to generate text. Please try again.");
-        } finally {
-            setIsGenerating(false);
-        }
+
+const MarkdownEditor = ({ noteTitle, markdownContent, onContentChange, onTitleChange, onSave }) => { // Receive props for data and callbacks
+    const [isEditingTitle, setIsEditingTitle] = useState(false); // State for title editing
+    const editorRef = useRef(null); // Ref for TextField to focus programmatically
+
+
+    const handleTitleEditClick = () => {
+        setIsEditingTitle(true);
+    };
+
+    const handleTitleBlur = () => {
+        setIsEditingTitle(false);
     };
 
     return (
         <Box>
+            <Toolbar sx={{ justifyContent: 'space-between', paddingLeft: 0, paddingRight: 0 }}> {/* Toolbar for title */}
+                {/* Editable Title Label */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: '100%' }}> {/* Take full width */}
+                    {isEditingTitle ? (
+                        <TextField
+                            variant="standard"
+                            value={noteTitle}
+                            onChange={(e) => onTitleChange && onTitleChange(e.target.value)} // Call onTitleChange callback
+                            onBlur={handleTitleBlur}
+                            autoFocus
+                            inputRef={editorRef} // Attach ref to TextField for autofocus
+                            sx={{ ml: 0, flexGrow: 1 }} // Adjust margin-left to 0, keep flex-grow
+                            placeholder="Note Title"
+                            fullWidth // Ensure TextField takes full width
+                        />
+                    ) : (
+                        <Typography variant="h6" sx={{ ml: 0, flexGrow: 1 }} onDoubleClick={handleTitleEditClick} style={{ cursor: 'pointer' }}> {/* Adjust margin-left to 0, keep flex-grow */}
+                            {noteTitle}
+                        </Typography>
+                    )}
+                    {!isEditingTitle && (
+                        <Tooltip title="Edit Title">
+                            <IconButton onClick={handleTitleEditClick} size="small">
+                                <EditIcon />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                    {/* Save Button - Conditionally Rendered */}
+                    {!isEditingTitle && (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={onSave} // Call onSave callback prop
+                            //disabled={isGenerating || !isContentChangedSinceSave} // You can manage disabled state in ProjectPlanTab if needed
+                            sx={{ ml: 1 }} // Add marginLeft for spacing
+                            startIcon={<SaveIcon />} // Add SaveIcon
+                        >
+                            Save
+                            {/* {isSavingNote && <CircularProgress size={20} sx={{ ml: 1, color: 'white' }} />}  // No need for loading here, let ProjectPlanTab manage it */}
+                        </Button>
+                    )}
+                </Box>
+            </Toolbar>
+
+
             <TextField
                 multiline
                 fullWidth
-                rows={10}
+                rows={15} // Increase rows for more editor space
                 placeholder="Start writing your idea notes in Markdown here..."
                 variant="outlined"
                 value={markdownContent}
-                onChange={(e) => setMarkdownContent(e.target.value)}
+
+                onChange={(e) => onContentChange && onContentChange(e.target.value)} // Call onContentChange callback
             />
-            <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleAIImprove}
-                    disabled={isGenerating}
-                >
-                    {isGenerating ? (
-                        <>Generating <CircularProgress size={20} sx={{ ml: 1, color: 'white' }} /></>
-                    ) : (
-                        "AI Gen / Improve"
-                    )}
-                </Button>
-                {errorMessage && <Typography color="error">{errorMessage}</Typography>}
-            </Box>
         </Box>
     );
 };
 
 export default MarkdownEditor;
-
-// markdownContent state: Stores the content of the editor.
-
-// isGenerating state: Tracks whether the AI is currently generating text (for loading indicator and button disabling).
-
-// errorMessage state: Displays error messages from AI calls.
-
-// handleAIImprove function:
-
-// Sets isGenerating to true before calling aiService.generateText.
-
-// Calls aiService.generateText with a prompt to improve the current markdownContent.
-
-// Updates markdownContent state with the AI-generated text.
-
-// Handles errors and sets errorMessage if the AI call fails.
-
-// Sets isGenerating to false in finally block to end loading state.
-
-// Loading Indicator: Uses CircularProgress from Material UI to show a loading animation in the "AI Gen / Improve" button when generating.
-
-// Error Message Display: Displays the errorMessage using Typography with color="error".
