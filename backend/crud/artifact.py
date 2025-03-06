@@ -1,6 +1,6 @@
 # backend/crud/artifact.py
 import datetime
-from sqlmodel import Session, select
+from sqlmodel import Session, select, desc
 from backend.models.artifact import Artifact
 from backend.config import db_engine  # Clear name for the database engine
 from typing import List, Optional, Dict, Tuple
@@ -73,7 +73,11 @@ def list_artifacts(workspace_id: int, limit: int = 10, page: int = 1) -> Tuple[L
         else:
             # Calculate offset page and limit
             offset = (page - 1) * limit
-            statement = select(Artifact).where(Artifact.workspace_id == workspace_id).limit(limit).offset(offset)
+            statement = select(Artifact).\
+                where(Artifact.workspace_id == workspace_id)\
+                .order_by(desc(Artifact.updated_at))\
+                .limit(limit)\
+                .offset(offset)
             artifacts = session.exec(statement).all()
             total_statement = select(Artifact).where(Artifact.workspace_id == workspace_id)
             total_count = len(session.exec(total_statement).all())  # Count total artifacts
