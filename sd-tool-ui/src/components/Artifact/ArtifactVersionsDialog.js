@@ -19,13 +19,16 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestoreIcon from '@mui/icons-material/Restore';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
 import { getArtifactVersions, rollbackArtifactVersion, deleteArtifactById } from '../../services/client';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import ArtifactVersionPreview from './ArtifactVersionPreview';
 
 const ArtifactVersionsDialog = ({ open, onClose, documentId, currentVersion }) => {
   const [versions, setVersions] = useState([]);
+  const [previewVersion, setPreviewVersion] = useState(null);
   const { showLoading, hideLoading } = useLoading();
   const { showMessage, showError } = useMessage();
   const { 
@@ -95,72 +98,99 @@ const ArtifactVersionsDialog = ({ open, onClose, documentId, currentVersion }) =
     }
   };
 
+  const handlePreview = (version) => {
+    setPreviewVersion(version);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewVersion(null);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Version History</DialogTitle>
-      <DialogContent>
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Version</TableCell>
-                <TableCell>Artifact ID</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Updated At</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {versions.map((ver) => (
-                <TableRow 
-                  key={ver.id}
-                  sx={{ 
-                    backgroundColor: ver.version === currentVersion ? 'action.hover' : 'inherit'
-                  }}
-                >
-                  <TableCell>{ver.version}</TableCell>
-                  <TableCell>{ver.id}</TableCell>
-                  <TableCell>{formatDate(ver.created_at)}</TableCell>
-                  <TableCell>{formatDate(ver.updated_at)}</TableCell>
-                  <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      {ver.version !== currentVersion && (
-                        <Tooltip title="Rollback to this version">
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle>Version History</DialogTitle>
+        <DialogContent>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Version</TableCell>
+                  <TableCell>Artifact ID</TableCell>
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Updated At</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {versions.map((ver) => (
+                  <TableRow 
+                    key={ver.id}
+                    sx={{ 
+                      backgroundColor: ver.version === currentVersion ? 'action.hover' : 'inherit'
+                    }}
+                  >
+                    <TableCell>{ver.version}</TableCell>
+                    <TableCell>{ver.id}</TableCell>
+                    <TableCell>{formatDate(ver.created_at)}</TableCell>
+                    <TableCell>{formatDate(ver.updated_at)}</TableCell>
+                    <TableCell align="right">
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Tooltip title="View Version">
                           <IconButton 
                             size="small" 
-                            onClick={() => handleRollback(ver.version)}
+                            onClick={() => handlePreview(ver)}
                             color="primary"
                           >
-                            <RestoreIcon fontSize="small" />
+                            <VisibilityIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                      )}
-                      <Tooltip title="Delete version">
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDelete(ver.id)}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-      </DialogActions>
-    </Dialog>
+                        {ver.version !== currentVersion && (
+                          <Tooltip title="Rollback to this version">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleRollback(ver.version)}
+                              color="primary"
+                            >
+                              <RestoreIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Delete version">
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDelete(ver.id)}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <ArtifactVersionPreview
+        open={Boolean(previewVersion)}
+        onClose={handleClosePreview}
+        artifact={previewVersion}
+        onRevert={handleRollback}
+        currentVersion={currentVersion}
+      />
+    </>
   );
 };
 
