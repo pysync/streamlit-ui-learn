@@ -6,6 +6,7 @@ import {
     Typography,
     IconButton,
     Tooltip,
+    ButtonGroup,
 } from '@mui/material';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import MarkdownEditor from './MarkdownEditor';
@@ -18,15 +19,21 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
 import { ARTIFACT_TYPES } from '../../constants/sdlcPhases';
 import { useEditor } from '../../contexts/EditorContext';
+import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
+import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
+import TableRowsIcon from '@mui/icons-material/TableRows';
 
-const ProjectPlanTab = () => {
+const ProjectPlanTab = ({ layoutMode }) => {
     const [isNotesPaneVisible, setIsNotesPaneVisible] = useState(true);
     const [isWireframePaneVisible, setIsWireframePaneVisible] = useState(false);
     const panelGroupRef = useRef(null);
 
     const [noteMarkdownContent, setNoteMarkdownContent] = useState('');
     const [noteTitle, setNoteTitle] = useState('Idea Note');
-    
+    // Add isFullScreen state
+    const [isFullScreen, setIsFullScreen] = useState(false);
+
     const { showLoading, hideLoading } = useLoading();
     const { showSuccess, showError, clearMessage } = useMessage();
 
@@ -46,8 +53,7 @@ const ProjectPlanTab = () => {
 
     const { registerSaveHandler, registerFullscreenHandler } = useEditor();
 
-    // Add isFullScreen state
-    const [isFullScreen, setIsFullScreen] = useState(false);
+
 
     // Load content when active artifact changes
     useEffect(() => {
@@ -71,6 +77,24 @@ const ProjectPlanTab = () => {
             handleCreateNewNote();
         }
     }, [activeArtifact]);
+
+    // Update visibility based on layoutMode
+    useEffect(() => {
+        switch (layoutMode) {
+            case 'single':
+                setIsNotesPaneVisible(true);
+                setIsWireframePaneVisible(false);
+                break;
+            case 'vertical':
+            case 'horizontal':
+                setIsNotesPaneVisible(true);
+                setIsWireframePaneVisible(true);
+                break;
+            default:
+                setIsNotesPaneVisible(true);
+                setIsWireframePaneVisible(false);
+        }
+    }, [layoutMode]);
 
     const handleToggleNotesPane = () => {
         setIsNotesPaneVisible(!isNotesPaneVisible);
@@ -243,20 +267,52 @@ const ProjectPlanTab = () => {
             sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             data-save-handler={handleSaveNote}
         >
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                <Tooltip title={isNotesPaneVisible ? "Hide Notes" : "Show Notes"}>
-                    <IconButton onClick={handleToggleNotesPane} size="small" sx={{ mr: 1 }}>
-                        {isNotesPaneVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title={isWireframePaneVisible ? "Hide Wireframe" : "Show Wireframe"}>
-                    <IconButton onClick={handleToggleWireframePane} size="small">
-                        {isWireframePaneVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </IconButton>
-                </Tooltip>
+            <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
+                <PanelGroup 
+                    direction={layoutMode === 'horizontal' ? 'vertical' : 'horizontal'}
+                    ref={panelGroupRef}
+                >
+                    {isNotesPaneVisible && (
+                        <Panel
+                            className="panel-item"
+                            minSize={20}
+                            defaultSize={isWireframePaneVisible ? 50 : 100}
+                        >
+                            <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
+                                    <MarkdownEditor
+                                        noteTitle={noteTitle}
+                                        markdownContent={noteMarkdownContent}
+                                        onContentChange={handleNoteContentChange}
+                                        onTitleChange={handleNoteTitleChange}
+                                        onSave={handleSaveNote}
+                                        artifactId={activeArtifact?.document_id}
+                                    />
+                                </Paper>
+                            </Box>
+                        </Panel>
+                    )}
+                    
+                    {isNotesPaneVisible && isWireframePaneVisible && (
+                        <PanelResizeHandle className="resizer" />
+                    )}
+
+                    {isWireframePaneVisible && (
+                        <Panel
+                            className="panel-item"
+                            minSize={20}
+                            defaultSize={50}
+                        >
+                            <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
+                                    <Typography variant="h6" gutterBottom>Draft Wireframe</Typography>
+                                    <ExcalidrawComponent />
+                                </Paper>
+                            </Box>
+                        </Panel>
+                    )}
+                </PanelGroup>
             </Box>
-            
-            {renderContent()}
         </Box>
     );
 };

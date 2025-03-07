@@ -31,15 +31,21 @@ import CreateArtifactDialog from '../components/Artifact/CreateArtifactDialog';
 import WorkspaceSidebar from '../components/Workspace/WorkspaceSidebar';
 import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS } from '../constants/sdlcPhases';
 import { useEditor } from '../contexts/EditorContext';
+import TableRowsIcon from '@mui/icons-material/TableRows';
+import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
+import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
+import ButtonGroup from '@mui/material/ButtonGroup';
 
 const drawerWidth = 240;
 
 const WorkingSpacePage = () => {
     const { workspaceId } = useParams();
+    const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
     
     if (!workspaceId) {
         return <div>Error: No Workspace ID provided.</div>;
     }
+
 
     return (
         <WorkspaceProvider workspaceId={workspaceId}>
@@ -53,6 +59,7 @@ const WorkingSpaceContent = () => {
     const { 
         currentWorkspace, 
         openedArtifacts, 
+        activeArtifacts,
         activeArtifactDocumentId,
         selectArtifact,
         removeOpenedArtifact,
@@ -64,6 +71,7 @@ const WorkingSpaceContent = () => {
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);
     const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
     
     const theme = useTheme();
     const { triggerSave, triggerFullscreen } = useEditor();
@@ -147,7 +155,7 @@ const WorkingSpaceContent = () => {
 
         // For now, we'll just show the ProjectPlanTab for all artifacts
         // In a real implementation, you'd switch based on artifact type
-        return <ProjectPlanTab />;
+        return <ProjectPlanTab layoutMode={layoutMode} />;
     };
 
     return (
@@ -258,49 +266,66 @@ const WorkingSpaceContent = () => {
                 </AppBar>
                 
                 {/* Artifact Sub-Navigation Bar */}
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs
-                        value={activeArtifactDocumentId || false}
+                <Box sx={{ 
+                    borderBottom: 1, 
+                    borderColor: 'divider',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <Tabs 
+                        value={activeArtifactDocumentId || false} 
                         onChange={handleArtifactSelect}
                         variant="scrollable"
                         scrollButtons="auto"
-                        aria-label="artifact tabs"
                     >
                         {filteredArtifacts.map((artifact) => (
                             <Tab
                                 key={artifact.document_id}
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Typography variant="body2" noWrap sx={{ maxWidth: '120px' }}>
-                                            {artifact.title || 'Untitled'}
-                                        </Typography>
-                                        <Box 
-                                            component="div"
+                                        {artifact.title || 'Untitled'}
+                                        <IconButton
+                                            size="small"
                                             onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
-                                            sx={{ 
-                                                ml: 0.5, 
-                                                p: 0.25,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                cursor: 'pointer',
-                                                '&:hover': {
-                                                    color: 'primary.main'
-                                                }
-                                            }}
+                                            sx={{ ml: 1 }}
                                         >
                                             <CloseIcon fontSize="small" />
-                                        </Box>
+                                        </IconButton>
                                     </Box>
                                 }
                                 value={artifact.document_id}
-                                sx={{ 
-                                    minHeight: '40px',
-                                    height: '40px',
-                                    textTransform: 'none'
-                                }}
                             />
                         ))}
                     </Tabs>
+
+                    {/* Layout Controls */}
+                    <ButtonGroup size="small" variant="outlined" sx={{ ml: 2 }}>
+                        <Tooltip title="Single Panel">
+                            <IconButton 
+                                onClick={() => setLayoutMode('single')}
+                                color={layoutMode === 'single' ? "primary" : "default"}
+                            >
+                                <TableRowsIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Split Vertical">
+                            <IconButton 
+                                onClick={() => setLayoutMode('vertical')}
+                                color={layoutMode === 'vertical' ? "primary" : "default"}
+                            >
+                                <VerticalSplitIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Split Horizontal">
+                            <IconButton 
+                                onClick={() => setLayoutMode('horizontal')}
+                                color={layoutMode === 'horizontal' ? "primary" : "default"}
+                            >
+                                <HorizontalSplitIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </ButtonGroup>
                 </Box>
                 
                 {/* Main Content Area */}
