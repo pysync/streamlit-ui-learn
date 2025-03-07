@@ -21,6 +21,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ArtifactSelectDialog from './ArtifactSelectDialog';
+import ArtifactVersionsDialog from './ArtifactVersionsDialog';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
@@ -45,6 +46,9 @@ const ArtifactInspector = ({ artifact }) => {
   const { execUpdateArtifact, artifacts, updateOpenedArtifactInList } = useWorkspace();
   const { showLoading, hideLoading } = useLoading();
   const { showMessage, showError } = useMessage();
+
+  // Add new state for versions dialog
+  const [versionsDialogOpen, setVersionsDialogOpen] = useState(false);
 
   // Load artifact data when component receives a new artifact
   useEffect(() => {
@@ -179,6 +183,40 @@ const ArtifactInspector = ({ artifact }) => {
 
       {/* Form Content */}
       <Box component="form" sx={{ mt: 1 }}>
+        {/* Add Version Info after Title */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          mb: 1 
+        }}>
+          <Typography variant="body2" color="text.secondary">
+            Version: {artifact.version || 1}
+          </Typography>
+          {artifact.version > 1 && (
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => setVersionsDialogOpen(true)}
+              sx={{ 
+                minWidth: 'auto', 
+                textTransform: 'none',
+                py: 0,
+                px: 1,
+                mr: 1,
+                fontSize: '0.75rem',
+                color: 'primary.main',
+                '&:hover': {
+                    backgroundColor: 'transparent',
+                    textDecoration: 'underline'
+                }
+                }}
+            >
+              (versions)
+            </Button>
+          )}
+        </Box>
+
         <TextField
           label="Title"
           fullWidth
@@ -255,6 +293,14 @@ const ArtifactInspector = ({ artifact }) => {
             </Button>
           </Box>
         )}
+
+        {/* Add Versions Dialog */}
+        <ArtifactVersionsDialog
+          open={versionsDialogOpen}
+          onClose={() => setVersionsDialogOpen(false)}
+          documentId={artifact.document_id}
+          currentVersion={artifact.version}
+        />
       </Box>
       
       <ArtifactSelectDialog
