@@ -29,36 +29,13 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import CreateArtifactDialog from '../Artifact/CreateArtifactDialog';
 import ArtifactInspector from '../Artifact/ArtifactInspector';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
-import { getArtifactTypeLabel } from '../../constants/artifactTypes';
+import { getArtifactTypeLabel, getArtifactIcon } from '../../constants/sdlcConstants';
 import { useNavigate } from 'react-router-dom';
 import LogoDevIcon from '@mui/icons-material/LogoDev';
 import SearchArtifactDialog from './SearchArtifactDialog';
 
 const drawerWidth = 240;
 
-// Helper function to get icon by artifact type
-const getArtifactIcon = (artType) => {
-  switch (artType) {
-    case 'note':
-      return <NoteIcon />;
-    case 'document':
-      return <DescriptionIcon />;
-    case 'basic_design':
-    case 'detail_design':
-      return <DesignServicesIcon />;
-    case 'api_list':
-      return <ApiIcon />;
-    case 'screen_list':
-      return <ListAltIcon />;
-    case 'database_schema':
-      return <StorageIcon />;
-    case 'sequence_diagram':
-    case 'class_diagram':
-      return <AccountTreeIcon />;
-    default:
-      return <DescriptionIcon />;
-  }
-};
 
 const WorkspaceSidebar = () => {
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);

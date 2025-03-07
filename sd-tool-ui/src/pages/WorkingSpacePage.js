@@ -29,7 +29,7 @@ import { WorkspaceProvider, useWorkspace } from '../contexts/WorkspaceContext';
 import ProjectPlanTab from '../components/ProjectPlan/ProjectPlanTab';
 import CreateArtifactDialog from '../components/Artifact/CreateArtifactDialog';
 import WorkspaceSidebar from '../components/Workspace/WorkspaceSidebar';
-import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS } from '../constants/sdlcPhases';
+import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS } from '../constants/sdlcConstants';
 import { useEditor } from '../contexts/EditorContext';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';

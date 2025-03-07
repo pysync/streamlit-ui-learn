@@ -24,10 +24,16 @@ import {
   Chip,
   InputAdornment,
   IconButton,
+  Divider,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { ARTIFACT_TYPES, getArtifactTypeLabel } from '../../constants/artifactTypes';
+import { 
+  ARTIFACT_TYPE_OPTIONS, 
+  ARTIFACT_TYPE_TO_PHASE, 
+  PHASE_LABELS,
+  getArtifactTypeLabel 
+} from '../../constants/sdlcConstants';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
@@ -107,6 +113,16 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
     return date.toLocaleString();
   };
 
+  // Add grouping function
+  const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
+    const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+    if (!acc[phase]) {
+      acc[phase] = [];
+    }
+    acc[phase].push(option);
+    return acc;
+  }, {});
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Select Dependencies</DialogTitle>
@@ -127,11 +143,9 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
               ),
             }}
           />
-          <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="artifact-type-filter-label">Type</InputLabel>
+          <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Type</InputLabel>
             <Select
-              labelId="artifact-type-filter-label"
-              id="artifact-type-filter"
               value={artifactTypeFilter}
               onChange={handleTypeFilterChange}
               label="Type"
@@ -144,11 +158,18 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
               <MenuItem value="">
                 <em>All Types</em>
               </MenuItem>
-              {ARTIFACT_TYPES.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
-                </MenuItem>
-              ))}
+              {Object.entries(groupedOptions).map(([phase, options]) => [
+                <Divider key={`divider-${phase}`}>
+                  <Typography variant="caption" color="text.secondary">
+                    {PHASE_LABELS[phase]}
+                  </Typography>
+                </Divider>,
+                ...options.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))
+              ])}
             </Select>
           </FormControl>
         </Box>

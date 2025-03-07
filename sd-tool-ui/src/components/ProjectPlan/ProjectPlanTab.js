@@ -17,7 +17,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
-import { ARTIFACT_TYPES } from '../../constants/sdlcPhases';
+import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
 import { useEditor } from '../../contexts/EditorContext';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';

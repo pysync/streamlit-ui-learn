@@ -25,7 +25,7 @@ import ArtifactVersionsDialog from './ArtifactVersionsDialog';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
-import { ARTIFACT_TYPES, getFileExtension } from '../../constants/artifactTypes';
+import { ARTIFACT_TYPES, getFileExtension, getArtifactTypeLabel, ARTIFACT_TYPE_OPTIONS, ARTIFACT_TYPE_TO_PHASE, PHASE_LABELS } from '../../constants/sdlcConstants';
 import { setArtifactMeta, downloadArtifact } from '../../services/client';
 import { isEqual } from 'lodash'; // For deep comparison of objects
 
@@ -157,6 +157,16 @@ const ArtifactInspector = ({ artifact }) => {
 
   const fileExtension = getFileExtension(artifact.art_type);
 
+  // Add grouping function
+  const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
+    const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+    if (!acc[phase]) {
+      acc[phase] = [];
+    }
+    acc[phase].push(option);
+    return acc;
+  }, {});
+
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       {/* Header */}
@@ -235,11 +245,18 @@ const ArtifactInspector = ({ artifact }) => {
             label="Artifact Type"
             onChange={(e) => setArtType(e.target.value)}
           >
-            {ARTIFACT_TYPES.map((type) => (
-              <MenuItem key={type.value} value={type.value}>
-                {type.label}
-              </MenuItem>
-            ))}
+            {Object.entries(groupedOptions).map(([phase, options]) => [
+              <Divider key={`divider-${phase}`}>
+                <Typography variant="caption" color="text.secondary">
+                  {PHASE_LABELS[phase]}
+                </Typography>
+              </Divider>,
+              ...options.map(option => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))
+            ])}
           </Select>
         </FormControl>
         

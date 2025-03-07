@@ -20,132 +20,109 @@ import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
 import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
 import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
+import { 
+    ARTIFACT_TYPE_OPTIONS, 
+    ARTIFACT_TYPE_TO_PHASE, 
+    PHASE_LABELS 
+} from '../../constants/sdlcConstants';
 
 const CreateArtifactDialog = ({ open, onClose }) => {
     const [title, setTitle] = useState('');
-    const [artType, setArtType] = useState('note');
+    const [artType, setArtType] = useState('');
     const [textContent, setTextContent] = useState('');
     const [ uploadFile, setUploadFile] = useState(null); // State for uploaded file
     const { currentWorkspace, execCreateArtifact, execUpdateArtifact, uploadArtifact, execSetArtifactMeta} = useWorkspace();
     const { showLoading, hideLoading } = useLoading();    // Use Loading Context
-    const { showError, clearMessage } = useMessage();    // Use Message Context
+    const { showMessage, showError, clearMessage } = useMessage();    // Use Message Context
 
     
-    const handleTextArtifactCreate = async () => {
-        clearMessage(); // Clear any previous messages
-        showLoading();
-        try {
-            if (!title || !artType) {
-                showError("Please enter title and select artifact type.");
-                return;
-            }
-
-            const document_id = generateDocumentId(title); // Generate document_id here
-            const artifactData = {
-                document_id: document_id,
-                title: title,
-                content: textContent,
-                art_type: artType,
-            };
-            await execCreateArtifact(artifactData);
-            onClose();
-        } catch (error) {
-            console.error("Error creating text artifact:", error);
-            showError("Failed to create text artifact.");
-        } finally {
-            hideLoading();
+    const handleCreate = async () => {
+        if (!title.trim()) {
+            showError('Title is required');
+            return;
         }
-    };
-
-    const handleFileUploadArtifactCreate = async () => {
-        clearMessage(); // Clear any previous messages
-        showLoading();
-        if (!title || !artType || !uploadFile) {
-            showError("Please enter title, select artifact type, and upload a file.");
-            hideLoading();
+        if (!artType) {
+            showError('Artifact type is required');
             return;
         }
 
+        showLoading();
         try {
-            // Step 1: Upload file
-            const uploadResponse = await uploadArtifact(currentWorkspace.id, uploadFile);
-            const uploadedArtifact = uploadResponse; // Assuming uploadArtifact returns the created artifact data
-            const documentId = uploadedArtifact.document_id;
-
-            // Step 2: Update artifact metadata (title, art_type)
-            const updateData = {
-                title: title,
-                content: null, // Content is already in the uploaded file
-                dependencies: null, // No dependencies for now
-            };
-            await execSetArtifactMeta(documentId, updateData, artType); // Pass artType as separate param based on API
-            onClose();
-
-        } catch (uploadError) {
-            console.error("Error during file upload or metadata update:", uploadError);
-            showError("Failed to upload file or update artifact metadata.");
+            await execCreateArtifact({
+                title: title.trim(),
+                art_type: artType,
+                content: '',
+                dependencies: []
+            });
+            showMessage('Artifact created successfully', 'success');
+            handleClose();
+        } catch (error) {
+            console.error('Error creating artifact:', error);
+            showError('Failed to create artifact');
         } finally {
             hideLoading();
         }
     };
 
-
-    const handleCreate = () => {
-        if (uploadFile) {
-            handleFileUploadArtifactCreate(); // Call file upload flow
-        } else {
-            handleTextArtifactCreate();      // Call text creation flow
-        }
-    };
-
-
     const handleClose = () => {
+        setTitle('');
+        setArtType('');
         onClose();
         clearMessage(); // Clear messages on dialog close
         // Clear form fields on close if needed
-        setTitle('');
-        setArtType('note');
         setTextContent('');
         setUploadFile(null);
     };
+
+    // Group options by phase
+    const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
+        const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+        if (!acc[phase]) {
+            acc[phase] = [];
+        }
+        acc[phase].push(option);
+        return acc;
+    }, {});
 
     const handleFileChange = (event) => {
         setUploadFile(event.target.files[0]); // Store the selected File object
     };
 
-
     return (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
             <DialogTitle>Create New Artifact</DialogTitle>
             <DialogContent>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="title"
-                    label="Title"
-                    type="text"
-                    fullWidth
-                    variant="standard"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-                <FormControl fullWidth margin="dense" variant="standard">
-                    <InputLabel id="artifact-type-label">Artifact Type</InputLabel>
-                    <Select
-                        labelId="artifact-type-label"
-                        id="artifact-type-select"
-                        value={artType}
-                        label="Artifact Type"
-                        onChange={(e) => setArtType(e.target.value)}
-                    >
-                        <MenuItem value="note">Note</MenuItem>
-                        <MenuItem value="document">Document (SRS)</MenuItem>
-                        <MenuItem value="basic_design">Basic Design</MenuItem>
-                        <MenuItem value="detail_design">Detail Design</MenuItem>
-                        <MenuItem value="api_list">API List</MenuItem>
-                        <MenuItem value="screen_list">Screen List</MenuItem>
-                    </Select>
-                </FormControl>
+                <Box sx={{ pt: 1 }}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Title"
+                        fullWidth
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>Artifact Type</InputLabel>
+                        <Select
+                            value={artType}
+                            label="Artifact Type"
+                            onChange={(e) => setArtType(e.target.value)}
+                        >
+                            {Object.entries(groupedOptions).map(([phase, options]) => [
+                                <Divider key={`divider-${phase}`}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {PHASE_LABELS[phase]}
+                                    </Typography>
+                                </Divider>,
+                                ...options.map(option => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </MenuItem>
+                                ))
+                            ])}
+                        </Select>
+                    </FormControl>
+                </Box>
 
                 {/* Text Content Area - Visible when no file uploaded */}
                 {!uploadFile && (
@@ -182,7 +159,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleCreate} variant="contained" disabled={!title || !artType}>
+                <Button onClick={handleCreate} variant="contained" color="primary">
                     Create
                     {useLoading().loading && <CircularProgress size={20} sx={{ ml: 1, color: 'white' }} />} {/* Loading indicator */}
                 </Button>

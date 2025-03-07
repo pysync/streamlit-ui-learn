@@ -14,7 +14,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import { getArtifactTypeLabel } from '../../constants/artifactTypes';
+import { getArtifactTypeLabel } from '../../constants/sdlcConstants';
 
 const ArtifactVersionPreview = ({ 
   open, 
