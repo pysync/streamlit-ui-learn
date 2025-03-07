@@ -6,9 +6,9 @@ import CreateWorkspaceDialog from '../components/Workspace/CreateWorkspaceDialog
 import EditWorkspaceDialog from '../components/Workspace/EditWorkspaceDialog';
 import ConfirmDialog from '../components/Common/ConfirmDialog';
 import { useLoading } from '../contexts/LoadingContext';
-import { useError } from '../contexts/ErrorContext';
+import { useMessage } from '../contexts/MessageContext';
 import LoadingIndicator from '../components/Common/LoadingIndicator';
-import ErrorSnackbar from '../components/Common/ErrorSnackbar';
+import MessageSnackbar from '../components/Common/MessageSnackbar';
 import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
@@ -23,7 +23,7 @@ export default function HomePage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
 
   const { showLoading, hideLoading } = useLoading();
-  const { showError } = useError();
+  const { showError } = useMessage();
 
   const navigate = useNavigate();
 
@@ -149,9 +149,9 @@ export default function HomePage() {
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
-      {/* Global Loading & Error Indicators */}
+      {/* Global Loading & Message Indicators */}
       <LoadingIndicator />
-      <ErrorSnackbar />
+      <MessageSnackbar />
 
       <Stack direction="row" spacing={2} sx={{ mb: 2 }} justifyContent="flex-end">
         <Button variant="contained" color="primary" onClick={handleDialogOpen}>

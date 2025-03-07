@@ -1,5 +1,5 @@
 // src/components/Workspace/WorkspaceSidebar.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Drawer,
     Toolbar,
@@ -12,27 +12,62 @@ import {
     Box,
     Fab,
     Tooltip,
-    Typography, // Import Typography for header
+    Typography,
 } from '@mui/material';
 import NoteIcon from '@mui/icons-material/Note';
 import CodeIcon from '@mui/icons-material/Code';
 import ImageIcon from '@mui/icons-material/Image';
+import ApiIcon from '@mui/icons-material/Api';
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import StorageIcon from '@mui/icons-material/Storage';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AddIcon from '@mui/icons-material/Add';
 import CreateArtifactDialog from '../Artifact/CreateArtifactDialog';
-import { useWorkspace } from '../../contexts/WorkspaceContext'; // Import useWorkspace
+import ArtifactInspector from '../Artifact/ArtifactInspector';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { getArtifactTypeLabel } from '../../constants/artifactTypes';
 
 const drawerWidth = 240;
 
+// Helper function to get icon by artifact type
+const getArtifactIcon = (artType) => {
+  switch (artType) {
+    case 'note':
+      return <NoteIcon />;
+    case 'document':
+      return <DescriptionIcon />;
+    case 'basic_design':
+    case 'detail_design':
+      return <DesignServicesIcon />;
+    case 'api_list':
+      return <ApiIcon />;
+    case 'screen_list':
+      return <ListAltIcon />;
+    case 'database_schema':
+      return <StorageIcon />;
+    case 'sequence_diagram':
+    case 'class_diagram':
+      return <AccountTreeIcon />;
+    default:
+      return <DescriptionIcon />;
+  }
+};
+
 const WorkspaceSidebar = () => {
-    const [selectedArtifact, setSelectedArtifact] = useState(null);
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);
-    const { artifacts, addOpenedArtifact, setActiveArtifact } = useWorkspace(); // Consume artifacts from context
+    const { 
+      artifacts, 
+      addOpenedArtifact, 
+      selectArtifact, 
+      activeArtifactDocumentId,
+      activeArtifact
+    } = useWorkspace();
 
     const handleArtifactSelect = (artifact) => {
-        setSelectedArtifact(artifact);
-        console.log("Selected Artifact:", artifact);
         addOpenedArtifact(artifact); // Add selected artifact to opened list
-        setActiveArtifact(artifact.document_id); // Set active artifact in context
+        selectArtifact(artifact.document_id); // Set active artifact in context
     };
 
     const handleCreateArtifactDialogOpen = () => {
@@ -43,7 +78,7 @@ const WorkspaceSidebar = () => {
         setIsCreateArtifactDialogOpen(false);
     };
 
-    const isEmpty = !(artifacts && artifacts.items && artifacts.items.length > 0)
+    const isEmpty = !(artifacts && artifacts.items && artifacts.items.length > 0);
 
     return (
         <Drawer
@@ -52,6 +87,7 @@ const WorkspaceSidebar = () => {
                 '& .MuiDrawer-paper': {
                     width: drawerWidth,
                     boxSizing: 'border-box',
+                    overflow: 'auto', // Allow scrolling
                 },
             }}
             variant="permanent"
@@ -60,7 +96,12 @@ const WorkspaceSidebar = () => {
             <Toolbar />
             <Divider />
 
-            {/* Sidebar Header */}
+            {/* Artifact Inspector section */}
+            {activeArtifact && (
+              <ArtifactInspector artifact={activeArtifact} />
+            )}
+
+            {/* Working Documents section */}
             <Box sx={{ p: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
                     Working Documents
@@ -68,30 +109,31 @@ const WorkspaceSidebar = () => {
             </Box>
             <Divider />
 
-
             <List>
                 {isEmpty ? (
                     <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
                         <Typography variant="body2">No artifacts yet.</Typography>
                     </Box>
-                ) :
-                    (artifacts.items.map((artifact, index) => (
+                ) : (
+                    artifacts.items.map((artifact) => (
                         <ListItem
                             key={artifact.id}
                             disablePadding
-                            selected={selectedArtifact?.id === artifact.id}
+                            selected={activeArtifactDocumentId === artifact.document_id}
                         >
                             <ListItemButton onClick={() => handleArtifactSelect(artifact)}>
                                 <ListItemIcon>
-                                    {index % 2 === 0 ? <NoteIcon /> : <CodeIcon />}
+                                    {getArtifactIcon(artifact.art_type)}
                                 </ListItemIcon>
-                                <ListItemText primary={artifact.title} />
+                                <ListItemText 
+                                  primary={artifact.title} 
+                                  secondary={getArtifactTypeLabel(artifact.art_type)}
+                                />
                             </ListItemButton>
                         </ListItem>
-                    )))
-                }
+                    ))
+                )}
             </List>
-
 
             <Divider />
             <Box sx={{ p: 2, textAlign: 'center' }}>
@@ -102,7 +144,7 @@ const WorkspaceSidebar = () => {
                 </Tooltip>
             </Box>
 
-            <CreateArtifactDialog // Dialog inside Sidebar component
+            <CreateArtifactDialog
                 open={isCreateArtifactDialogOpen}
                 onClose={handleCreateArtifactDialogClose}
             />

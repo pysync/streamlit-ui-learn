@@ -141,12 +141,12 @@ export async function getArtifactVersions(document_id) {
  */
 export async function createArtifact(workspace_id, artifactData) {
   // artifact data should have:  document_id, title, content, art_type
-  const { document_id, title, content, art_type } = artifactData
+  const { document_id, title, content, art_type, dependencies } = artifactData
   const url = `${BASE_URL}/artifacts/`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ workspace_id, document_id, title, content, art_type }),
+    body: JSON.stringify({ workspace_id, document_id, title, content, art_type, dependencies }),
   });
   return checkResponse(response);
 }
@@ -280,4 +280,37 @@ export async function getAllReindexingStatus() {
   const url = `${BASE_URL}/artifacts/reindex_status`;
   const response = await fetch(url);
   return checkResponse(response);
+}
+
+/**
+ * Download artifact file.
+ * @param {string} document_id - The document ID of the artifact
+ * @param {string} filename - The filename to save as
+ */
+export async function downloadArtifact(document_id, filename) {
+  const url = `${BASE_URL}/artifacts/download/${document_id}`;
+  
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Download failed');
+    }
+    
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+    
+    return true;
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error;
+  }
 }

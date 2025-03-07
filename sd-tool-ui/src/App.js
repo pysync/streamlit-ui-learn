@@ -3,25 +3,25 @@ import AppRoutes from './routes/AppRoutes';
 import { ThemeProvider } from '@mui/material/styles';
 
 import { LoadingProvider } from './contexts/LoadingContext';
-import { ErrorProvider } from './contexts/ErrorContext';
+import { MessageProvider } from './contexts/MessageContext';
 
-import ErrorSnackbar from './components/Common/ErrorSnackbar'; // Import ErrorSnackbar
-import LoadingIndicator from './components/Common/LoadingIndicator'; // Import LoadingIndicator
+import MessageSnackbar from './components/Common/MessageSnackbar';
+import LoadingIndicator from './components/Common/LoadingIndicator';
 
 import theme from './theme';
 
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
-      <ErrorProvider>
+      <MessageProvider>
         <LoadingProvider>
-          <ErrorSnackbar />   {/* Render ErrorSnackbar - OUTSIDE Providers */}
-          <LoadingIndicator /> {/* Render LoadingIndicator - OUTSIDE Providers */}
+          <MessageSnackbar />
+          <LoadingIndicator />
           
-            <AppRoutes />
+          <AppRoutes />
           
         </LoadingProvider>
-      </ErrorProvider>
+      </MessageProvider>
     </ThemeProvider>
   );
 };

@@ -10,7 +10,7 @@ import { getWorkspace,
         uploadArtifact
       } from '../services/client';
 import { useLoading } from './LoadingContext';
-import { useError } from './ErrorContext';
+import { useMessage } from './MessageContext';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 
 const WorkspaceContext = createContext();
@@ -18,15 +18,39 @@ const WorkspaceContext = createContext();
 export const WorkspaceProvider = ({ children, workspaceId }) => {
     const [currentWorkspace, setCurrentWorkspace] = useState(null);
     const [artifacts, setArtifacts] = useState(null);
-    const [openedArtifacts, setOpenedArtifacts] = useState([]); // Opened artifacts state - moved here
-    const [activeArtifactDocumentId, setActiveArtifactDocumentId] = useState(null); // Active tab state - moved here
+    const [openedArtifacts, setOpenedArtifacts] = useState([]); // Opened artifacts state
+    const [activeArtifactDocumentId, setActiveArtifactDocumentId] = useState(null); // Active tab state
+    const [activeArtifact, setActiveArtifact] = useState(null); // The active artifact object
 
 
     const { loading, showLoading, hideLoading } = useLoading()
-    const { showError, clearError } = useError()
+    const { showError, clearMessage } = useMessage()
 
-    console.log("working on: ", workspaceId, "have data: ", currentWorkspace);
-    console.log("working on artifacts: ", artifacts);
+
+    // Effect to update activeArtifact when activeArtifactDocumentId changes
+    useEffect(() => {
+        if (activeArtifactDocumentId) {
+            // First check in opened artifacts (which includes unsaved new artifacts)
+            const openedArtifact = openedArtifacts.find(
+                art => art.document_id === activeArtifactDocumentId
+            );
+            
+            if (openedArtifact) {
+                setActiveArtifact(openedArtifact);
+            } else if (artifacts && artifacts.items) {
+                // If not found in opened artifacts, check in all artifacts
+                const foundArtifact = artifacts.items.find(
+                    art => art.document_id === activeArtifactDocumentId
+                );
+                
+                if (foundArtifact) {
+                    setActiveArtifact(foundArtifact);
+                }
+            }
+        } else {
+            setActiveArtifact(null);
+        }
+    }, [activeArtifactDocumentId, openedArtifacts, artifacts]);
 
     useEffect(() => {
         if (workspaceId) {
@@ -71,7 +95,6 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     };
 
     const execCreateArtifact = async (artifactData) => {
-        console.log("currentWorkspace: ", currentWorkspace);
         showLoading();
         try {
             const newArtifact = await createArtifact(currentWorkspace.id, artifactData);
@@ -118,6 +141,8 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     };
 
     const updateOpenedArtifactInList = useCallback((updatedArtifact) => {
+        
+        // Update openedArtifacts state
         setOpenedArtifacts(currentArtifacts => {
             return currentArtifacts.map(openedArtifact => {
                 if (openedArtifact.document_id === updatedArtifact.document_id) {
@@ -126,8 +151,11 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 return openedArtifact; // Keep existing artifact
             });
         });
-        setArtifacts(currentArtifacts => { // Update artifacts list too for sidebar sync
-            if (!currentArtifacts || !currentArtifacts.items) return currentArtifacts; // Check if artifacts or artifacts.items is null
+        
+        // If it's already in the artifacts list, update it there too
+        setArtifacts(currentArtifacts => { 
+            if (!currentArtifacts || !currentArtifacts.items) return currentArtifacts;
+            
             return {
                 ...currentArtifacts,
                 items: currentArtifacts.items.map(artifact => {
@@ -138,7 +166,12 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 })
             };
         });
-    }, [setOpenedArtifacts, setArtifacts]);
+        
+        // If this is the active artifact, update activeArtifact directly too
+        if (activeArtifactDocumentId === updatedArtifact.document_id) {
+            setActiveArtifact(updatedArtifact);
+        }
+    }, [setOpenedArtifacts, setArtifacts, activeArtifactDocumentId]);
 
 
     const addOpenedArtifact = useCallback((artifact) => { // Moved from OpenedArtifactsContext
@@ -158,7 +191,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         setActiveArtifactDocumentId(null);
     }, []);
 
-    const setActiveArtifact = useCallback((documentId) => { // Moved from OpenedArtifactsContext
+    const selectArtifact = useCallback((documentId) => { // Renamed for clarity
         setActiveArtifactDocumentId(documentId);
     }, []);
 
@@ -188,14 +221,15 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         execSetArtifactMeta,
         updateArtifactVersion,
 
-        openedArtifacts,       // Include openedArtifacts in context value
-        addOpenedArtifact,     // Include addOpenedArtifact in context value
-        removeOpenedArtifact,  // Include removeOpenedArtifact in context value
-        activeArtifactDocumentId, // Include activeArtifactDocumentId in context value
-        setActiveArtifact,     // Include setActiveArtifact in context value
-        updateOpenedArtifactInList, 
-        addNewEmptyArtifactToOpenedList,
-        setActiveArtifactDocumentId,
+        openedArtifacts,       // Opened artifacts list
+        addOpenedArtifact,     // Add artifact to opened list  
+        removeOpenedArtifact,  // Remove artifact from opened list
+        activeArtifactDocumentId, // Document ID of active artifact
+        activeArtifact,        // The active artifact object (can be an opened artifact or a new unsaved one)
+        selectArtifact,        // Select artifact by document ID
+        updateOpenedArtifactInList, // Update an artifact in the opened list
+        addNewEmptyArtifactToOpenedList, // Add a new empty artifact
+        setActiveArtifactDocumentId, // Set active artifact by document ID
     };
 
     return (

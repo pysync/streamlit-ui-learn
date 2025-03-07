@@ -43,7 +43,7 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
   const [searchTerm, setSearchTerm] = useState('');
   const [artifactTypeFilter, setArtifactTypeFilter] = useState('');
   const [artifactsData, setArtifactsData] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState([]); // keep track ids
   const { currentWorkspace, artifacts } = useWorkspace();
   const { showLoading, hideLoading } = useLoading();
   const { showError } = useMessage();
@@ -83,12 +83,12 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
     setArtifactTypeFilter(event.target.value);
   };
 
-  const handleToggle = (documentId) => {
-    const currentIndex = selected.indexOf(documentId);
+  const handleToggle = (artId) => { // by dc id
+    const currentIndex = selected.indexOf(artId);
     const newSelected = [...selected];
     
     if (currentIndex === -1) {
-      newSelected.push(documentId);
+      newSelected.push(artId);
     } else {
       newSelected.splice(currentIndex, 1);
     }
@@ -177,7 +177,7 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
               </TableHead>
               <TableBody>
                 {filteredArtifacts.map((artifact) => {
-                  const isSelected = selected.indexOf(artifact.document_id) !== -1;
+                  const isSelected = selected.indexOf(artifact.id) !== -1;
                   
                   return (
                     <TableRow
@@ -187,7 +187,7 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
                       tabIndex={-1}
                       key={artifact.id}
                       selected={isSelected}
-                      onClick={() => handleToggle(artifact.document_id)}
+                      onClick={() => handleToggle(artifact.id)}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
@@ -209,11 +209,11 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
             Selected: {selected.length}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {selected.length > 0 && artifactsData.filter(a => selected.includes(a.document_id)).map(artifact => (
+            {selected.length > 0 && artifactsData.filter(a => selected.includes(a.id)).map(artifact => (
               <Chip 
                 key={artifact.document_id}
                 label={artifact.title || artifact.document_id}
-                onDelete={() => handleToggle(artifact.document_id)}
+                onDelete={() => handleToggle(artifact.id)}
                 color="primary"
                 variant="outlined"
                 size="small"

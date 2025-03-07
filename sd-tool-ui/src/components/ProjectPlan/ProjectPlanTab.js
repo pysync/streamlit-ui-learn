@@ -25,7 +25,7 @@ import BrushIcon from '@mui/icons-material/Brush';          // Import BrushIcon
 import AddIcon from '@mui/icons-material/Add';
 import { useWorkspace } from '../../contexts/WorkspaceContext'; // Import useWorkspace
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
-import { useError } from '../../contexts/ErrorContext';     // Import Error Context
+import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
 import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
 
 const ProjectPlanTab = () => {
@@ -38,20 +38,20 @@ const ProjectPlanTab = () => {
     const [noteTitle, setNoteTitle] = useState('Idea Note'); // State for note title in ProjectPlanTab
     
     const { showLoading, hideLoading } = useLoading();    // Use Loading Context
-    const { showError, clearError } = useError();        // Use Error Context
+    const { showSuccess, showError, clearMessage } = useMessage();    // Use Message Context
 
 
     const { currentWorkspace, execCreateArtifact,
         execUpdateArtifact, openedArtifacts,
         removeOpenedArtifact, activeArtifactDocumentId,
-        setActiveArtifact,
+        selectArtifact,
         addNewEmptyArtifactToOpenedList,
         setActiveArtifactDocumentId,
         updateOpenedArtifactInList,
+        activeArtifact
     } = useWorkspace(); // Get context functions
 
-    // Get the active artifact object from openedArtifacts based on activeArtifactDocumentId
-    const activeArtifact = openedArtifacts.find(artifact => artifact.document_id === activeArtifactDocumentId);
+    // console.log("current active artifact is: ", activeArtifact);
 
     useEffect(() => { // useEffect to update local state when activeArtifact changes
         if (activeArtifact) {
@@ -80,10 +80,15 @@ const ProjectPlanTab = () => {
 
     const handleSaveNote = async () => { // Implement handleSaveNote in ProjectPlanTab
         showLoading(); // Start loading for Save button
-        clearError();
+        clearMessage();
         try {
             if (!noteMarkdownContent.trim()) {
                 showError("Content cannot be empty to save."); // Basic validation
+                return;
+            }
+
+            if (!activeArtifact) {
+                showError("Cannot find the active artifact. Please try again.");
                 return;
             }
 
@@ -94,30 +99,47 @@ const ProjectPlanTab = () => {
                 artifactData = {
                     title: noteTitle,
                     content: noteMarkdownContent,
-                    art_type: 'note',
+                    art_type: activeArtifact.art_type || 'note', // Use existing art_type or default to 'note'
+                    dependencies: activeArtifact.dependencies || [] // Get dependencies from current state
                 };
+                
                 await execUpdateArtifact(activeArtifact.document_id, artifactData);
-                console.log("Artifact updated:", activeArtifact.document_id);
+                
+                // Update the artifact in the opened list to reflect changes
+                const updatedArtifact = {
+                    ...activeArtifact,
+                    title: noteTitle,
+                    content: noteMarkdownContent
+                    // Dependencies are preserved from currentActiveArtifact
+                };
+                updateOpenedArtifactInList(updatedArtifact);
             } else {
-                // Create new artifact
-                // const document_id = generateDocumentId(noteTitle);
+                // Create new artifact with properties from inspector
                 artifactData = {
-                    ...activeArtifact, // for use default document id
+                    document_id: activeArtifact.document_id, // Use existing temp ID
                     title: noteTitle,
                     content: noteMarkdownContent,
-                    art_type: 'note',
+                    art_type: activeArtifact.art_type || 'note', // Use art_type set in inspector or default
+                    dependencies: activeArtifact.dependencies || [], // Use dependencies from current state
                     workspace_id: currentWorkspace.id,
                 };
+                
                 const createdArtifact = await execCreateArtifact(artifactData);
-               
-                updateOpenedArtifactInList(createdArtifact); 
+                
+                // Make sure we preserve any dependencies that might have been set in the inspector
+                const updatedCreatedArtifact = {
+                    ...createdArtifact,
+                    dependencies: artifactData.dependencies // Ensure dependencies are preserved
+                };
+                
+                updateOpenedArtifactInList(updatedCreatedArtifact); 
                 setActiveArtifactDocumentId(createdArtifact.document_id); 
             }
             // Optionally refresh artifact list in sidebar here if needed
-            showError("Note saved successfully!"); // Basic success feedback
+            showSuccess("Note saved successfully!"); // Use success message
         } catch (error) {
             console.error("Error saving note:", error);
-            showError("Failed to save note."); // Basic error feedback
+            showError(`Failed to save note: ${error.message}`); // Include error details
         } finally {
             hideLoading(); // End loading for Save button
         }
@@ -158,12 +180,11 @@ const ProjectPlanTab = () => {
     // }, [activeArtifactDocumentId, openedArtifacts, updateOpenedArtifactInList]); // Add openedArtifacts to dependencies
 
     const handleCloseTab = (documentId) => {
-        console.log("close", documentId)
         removeOpenedArtifact(documentId); // Call removeOpenedArtifact from WorkspaceContext
     };
 
     const handleTabChange = (event, newValue) => { // Ensure this function is present
-        setActiveArtifact(newValue); // Call setActiveArtifact from context to update active tab
+        selectArtifact(newValue); // Call selectArtifact from context to update active tab
     };
 
     return (
