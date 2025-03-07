@@ -13,6 +13,7 @@ import {
     Fab,
     Tooltip,
     Typography,
+    IconButton,
 } from '@mui/material';
 import NoteIcon from '@mui/icons-material/Note';
 import CodeIcon from '@mui/icons-material/Code';
@@ -24,12 +25,14 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import StorageIcon from '@mui/icons-material/Storage';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AddIcon from '@mui/icons-material/Add';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import CreateArtifactDialog from '../Artifact/CreateArtifactDialog';
 import ArtifactInspector from '../Artifact/ArtifactInspector';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { getArtifactTypeLabel } from '../../constants/artifactTypes';
 import { useNavigate } from 'react-router-dom';
 import LogoDevIcon from '@mui/icons-material/LogoDev';
+import SearchArtifactDialog from './SearchArtifactDialog';
 
 const drawerWidth = 240;
 
@@ -59,6 +62,7 @@ const getArtifactIcon = (artType) => {
 
 const WorkspaceSidebar = () => {
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);
+    const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
     const { 
       artifacts, 
       addOpenedArtifact, 
@@ -137,12 +141,26 @@ const WorkspaceSidebar = () => {
               <ArtifactInspector artifact={activeArtifact} />
             )}
 
-            {/* Working Documents section */}
-            <Box sx={{ p: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
+            {/* Working Documents section with filter button */}
+            <Box sx={{ 
+                p: 2, 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center' 
+            }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
                     Working Documents
                 </Typography>
+                <Tooltip title="Search & Filter">
+                    <IconButton 
+                        size="small" 
+                        onClick={() => setIsSearchDialogOpen(true)}
+                    >
+                        <FilterListIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
             </Box>
+
             <Divider />
 
             <List>
@@ -183,6 +201,13 @@ const WorkspaceSidebar = () => {
             <CreateArtifactDialog
                 open={isCreateArtifactDialogOpen}
                 onClose={handleCreateArtifactDialogClose}
+            />
+
+            {/* Add Search Dialog */}
+            <SearchArtifactDialog
+                open={isSearchDialogOpen}
+                onClose={() => setIsSearchDialogOpen(false)}
+                onSelect={handleArtifactSelect}
             />
         </Drawer>
     );
