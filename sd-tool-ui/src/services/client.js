@@ -314,3 +314,34 @@ export async function downloadArtifact(document_id, filename) {
     throw error;
   }
 }
+
+/**
+ * Fetches available context actions for the markdown editor
+ * @returns {Promise<Array>} Array of context actions
+ */
+export const getContextActions = async () => {
+  try {
+    const response = await fetch('/api/context-actions', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch context actions: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.context_actions || [];
+  } catch (error) {
+    console.error('Error fetching context actions:', error);
+    // Return some default actions as fallback
+    return [
+      { id: 1, title: "Quick Refine", msg: "Help me refine this document" },
+      { id: 2, title: "Summarize", msg: "Summarize this content" },
+      { id: 3, title: "Extract Requirements", msg: "Extract requirements from this text" },
+      { id: 4, title: "Suggest Improvements", msg: "Suggest improvements for this document" }
+    ];
+  }
+};

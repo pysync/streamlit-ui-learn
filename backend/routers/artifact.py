@@ -117,7 +117,8 @@ def api_create_artifact(artifact_data: ArtifactCreate):
         document_id=artifact_data.document_id,
         title=artifact_data.title,
         content=artifact_data.content,
-        art_type=artifact_data.art_type
+        art_type=artifact_data.art_type,
+        dependencies=artifact_data.dependencies
     )
     return artifact
 

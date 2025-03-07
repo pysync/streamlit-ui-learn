@@ -11,6 +11,7 @@ class ArtifactCreate(BaseModel):
     content: str
     document_id: str
     art_type: Optional[str] = None
+    dependencies: Optional[List[int]] = None
 
 
 #  Schema for updating an artifact (PUT request)

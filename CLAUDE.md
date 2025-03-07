@@ -1,4 +1,100 @@
- Let's refine the workflow and screen layouts for your `WorkingSpacePage` in JavaScript, focusing on steps 1-3 of the SDLC with your AI-first approach.
+# CLAUDE.md - Project Guide
+
+## Run Commands
+- Backend: `uvicorn backend.app:app --reload` ( main backend app in python and fast api)
+- Frontend: `streamlit run app.py` ( only use for quick create draft ui and test AI code in streamlit)
+- SD-Tool UI: `cd sd-tool-ui && npm start` ( real frontend project with reactjs)
+
+## Test Commands
+- Run all tests: `pytest backend/tests/`
+- Run specific test: `pytest backend/tests/test_workspace_apis.py::test_create_workspace -v`
+- Run tests with coverage: `pytest --cov=backend backend/tests/`
+
+## Code Style Guidelines
+1. **Imports**: Standard lib → Third-party → Internal; use absolute imports
+2. **Naming**: snake_case for files/functions, PascalCase for classes, UPPER_CASE for constants
+3. **Formatting**: 4 spaces indentation, reasonable line length, logical section breaks
+4. **Type hints**: Use throughout code with typing module (Optional, List, Dict, etc.)
+5. **Error handling**: Use try/except blocks with specific exceptions
+6. **Documentation**: Docstrings with triple quotes, comments for complex logic
+7. **API structure**: RESTful design, clear endpoints, pagination for lists
+
+## Database Operations
+- Use SQLModel Session with context managers
+- Consistent CRUD patterns with commit/refresh
+- Rollback on exceptions
+
+## Project Overview (Spect)
+I building a software development tools - mainly use for first harf-phases in SDLC, that include 
+
+(1) requirement design ( RD ) should output:  software  requirement spect - SRS document 
+(2) basic design (BD)  should output: related BD documents, for example: screen list, function list,
+ database table schema list and detail, API list, batch list , sequence diagram, .. etc..
+(3) detail design (DD): output should is detailed of BD, and use ready for code.
+
+As workflow, 
+- first screen when start up, should show list of Workspace, screen also have CRUD action
+- when user select one, will load screen Working Space -> that screen is Main App 
+( like Slack, when user go one workspace - slackchannel, every things , function can do be in that Working Space)
+- Working Space should be design for easy work. in this working space, bellow data is center:
+
+1. Artifact, that is abstraction data with type is: Note, Document, Basic Design, Detail Design, API List, Screen List every things.
+2. To create Artifact, user can press button New then show Popup to enter info detail or upload file 
+3. Artifact is core data of system, so every tools in that workspace is working on that 
+4. When first go Working space, we should see on tab: is free note -> that allow user quick note ( = default artifact note)
+At sidebar will display list of current artifact have in working space.
+5. in main screen (right content), let's have tabs: note -> copilot ai (chat) -> screen maps -> api list ->.. so on.
+that top tabs can scroll to acess more tab. and can close.
+
+
+- system will have first screen is free note and chat to interactive with system
+- have side bar, and can upload related to project files -> after upload use as context.
+- then have multi tabs, to switch between screen that work with above output.
+as a user, first step is upload current have documents ( maybe requirement draft, or some flexible BD documents...) 
+then, ask AI explain overview current document have.
+then, user will working with note and pass to AI ask to generate screen list, API list, DB schema , some diagram... 
+Or, user can go specific above tabs, and ask user to generate ( or use button) to "re-generate from context".
+generated output should be display readltime in  ( table, dataframe). and user can interactive edit and save. saved data should boadcast update all system, it's mean if you change one feature name at SRS tab, then go screen list or function list we will can as to re-generate and update with data changed at SRS tab, and so on.
+finally  after document generated, output should be store in raw markdown files in output folder.
+and the next session, if user continue work in, the current state should be restore and can continue work with same context ( it's mean, final generated content should be use as last context)
+
+
+== Out Techstack as bellow ==
+1. UI/UX: use material ui and reactjs for development
+2. For backend api: use fast api
+3. For AI: 
++ llama_index.llms.ollama, llama_index.embeddings.ollama  to work with local LLM
+4. For DB vector:
++ llama_index.core VectorStoreIndex, StorageContext, SimpleDirectoryReader for load and work with db vector 
+5. For chat:
++ llama_index.core.memory ChatMemoryBuffer, chat_engine.chat to ask and get response 
+
+== UI /UX and Worfollow Consider ==
+UI/UX Considerations:
+
+Clean Layout: The WorkspacePage provides a good starting point for a clean and organized layout:
+Left sidebar for navigation (artifacts).
+Top tabs for switching between main views.
+Main content area for displaying the selected view.
+Artifact Display:
+Use ArtifactCard.tsx to display individual artifacts.
+Consider using a grid layout for ArtifactList.tsx.
+Implement filtering and sorting options for artifacts.
+"New" Artifact Creation: A Material UI Dialog is a good choice for the "New Artifact" popup.
+Use a form with appropriate input fields for the artifact type.
+Consider using a rich text editor (e.g., Quill, Draft.js) for the artifact content.
+AI Copilot Chat: Use a separate component for the AI chat interface.
+Consider using a library like react-chat-window or building your own chat interface.
+Implement a mechanism to send artifact content to the AI and display the AI's responses.
+Screen Maps and API List:
+These sections will likely require custom components to display the data in a meaningful way.
+Consider using libraries like react-flow for screen maps and react-table for API lists.
+Accessibility: Use Material UI components correctly to ensure accessibility. Provide proper labels for form elements. Use ARIA attributes where necessary.
+Responsiveness: Use Material UI's responsive grid system to ensure the application looks good on different screen sizes.
+
+# == CORE APP: WorkingSpacePage Spect ==
+
+Let's refine the workflow and screen layouts for your `WorkingSpacePage` in JavaScript, focusing on steps 1-3 of the SDLC with your AI-first approach.
 
 **1. Workflow Analysis within `WorkingSpacePage`**
 
@@ -156,3 +252,42 @@ Here's a textual representation of the screen layout for each tab within `Workin
     *   Context Menus (if using a library)
 
 By following this detailed workflow, screen map, and UI/UX plan, we can build a `WorkingSpacePage` that effectively guides users through the initial SDLC stages, leveraging AI to enhance their productivity and creativity. Remember to iterate on your design based on user feedback as you develop.
+
+
+## Details Spect For Workflow in Working Page -> PROJECT PLAN
+
+### Common spect for Artifact
+
+When user Select one Tab ( Active one Artifact), at sidebar let's render inspector ( for artifact)
+Let's break that component for reuseable and import in SideBar and pass current active artifact as params.
+that component should render at Top of "Working Documents" section. and allow user edit some properties as bellow
+( basicly it's edit view of Artifact). 
++ title
++ art-type (need define constant of art type to user selectable -> optional free entry if not selectable)
++ dependences -> when click to select just show popup list available artifacts in current workspace
+  and user can select multiple. artifacts select diaglog should split to shared components maybe use in multiplace. in this dialog should render artifacts as table ( document id, title, art type, updated at)
+  and have search bar in top, user for quick search filter by art type and title or doc id
+  after user selected multi artfiact, should update artifact and display dependences in inspector sidebar
+  as easy to view: tags style ? ( and can click one x icon to remove)
++ and at bottom of artifact inspector, let's show some actions:
++ show extension of file (.md, .txt, .xlsx, .docx, .pdf, .excalidraw) - where to display please onsider
+for example: file name .md or (just bellow title with caption text ?) 
+- download: when click will download arficat file. just call api to export file.
+( please add endpoint to client.js - and write spect for that endpoint, we will develop later)
+- ensure left tab sidebar inspector data should sync in right ( current selected artifact).
+
+### Spect for Editor Tab ( In Detail Editor )
+1. Allow user free enter text
+2. At top-left, render button for work in FULL Screen ( toogle full or colapse)
+3. At bottom, render as very thin (like status bar) list of actions with button type text (no border, no fill) 
+with name like: "Copilot Chat",  "Quick Refine".. as action name can work with this note.
+and list of actions name should be generated from one APIs, for example API will return:
+"context_actions" : [ {"id": 1, "title": "quick refine", "msg":"help me define this docs" }, {...} ]
+and when user click to one action, should call API endpoint: /colpilot with: 
+{
+    context action id: 1,  
+    context action msg: "help me define this docs",
+    artifact_id: "id of artifact" working on or None,
+    note content: "current content of note" - must required if artifact_id is null.
+}
+for implement detail each action, can implement later. 
