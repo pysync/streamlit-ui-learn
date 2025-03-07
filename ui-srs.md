@@ -156,3 +156,113 @@ Here's a textual representation of the screen layout for each tab within `Workin
     *   Context Menus (if using a library)
 
 By following this detailed workflow, screen map, and UI/UX plan, we can build a `WorkingSpacePage` that effectively guides users through the initial SDLC stages, leveraging AI to enhance their productivity and creativity. Remember to iterate on your design based on user feedback as you develop.
+
+
+
+--- UPDATED ---
+Below is a proposed strategy to simplify your layout and reduce the vertical space used while still supporting the different artifact types that map to your SDLC phases.
+
+---
+
+## 1. Simplified Layout Approach
+
+Instead of having a multi-layer tab structure (main AppBar → top-level tabs → sub-tabs → in-tab action bar), consider a two-tier layout:
+
+- **Unified Top AppBar:**  
+  - **What It Contains:**  
+    - The workspace title.  
+    - A set of context-sensitive actions (e.g., Save, Expand) that change based on the currently active artifact type.  
+    - A small, integrated control (like a segmented control or dropdown) to select the current SDLC context (e.g., Planning, Requirements, Design).
+
+- **Artifact Sub-Navigation Bar (Subtabs):**  
+  - **What It Contains:**  
+    - A horizontal, scrollable list of the open artifact titles (or icons + labels) for the active SDLC phase.  
+    - This area shows only the artifact name (or a brief descriptor), keeping it compact.
+  
+- **Main Content Area:**  
+  - Displays the detailed view for the selected artifact (Markdown editor, interactive diagram, etc.).  
+  - This area then occupies the remaining screen space.
+
+*This two-component structure (AppBar + Subnav) minimizes vertical stacking and frees up more space for the actual working area.*
+
+---
+
+## 2. Artifact Types & SDLC Mapping
+
+Mapping your artifacts to the SDLC steps can be achieved by tagging or categorizing each artifact. Here’s a suggested breakdown:
+
+### **Planning Phase**
+- **Artifacts:**
+  - **Idea Notes:** Freeform Markdown text capturing initial ideas.
+  - **Wireframes:** Early sketches or diagrams (using Excalidraw or similar).
+  - **Backlog Items:** Kanban cards outlining key features/tasks.
+- **Tag/Group Name:** *Planning*
+
+### **Requirements Phase**
+- **Artifacts:**
+  - **SRS Document:** A structured Markdown document covering SRS sections.
+  - **Requirements Table/List:** A sortable/filterable table of functional and non-functional requirements.
+- **Tag/Group Name:** *Requirements*
+
+### **Design Phase (Basic Design)**
+- **Artifacts:**
+  - **Screen Maps:** Interactive flow diagrams (react-flow or similar).
+  - **API List:** Tables or documents detailing API endpoints.
+  - **ER Diagrams & Other Diagrams:** Diagrams such as sequence, activity, or system overview created via diagramming tools.
+- **Tag/Group Name:** *Design*
+
+---
+
+## 3. Menu Considerations for Different Roles
+
+### **For Product Owners:**
+- **Preferred Views:**
+  - **High-Level Planning:** See idea notes, wireframes, and backlog items grouped under *Planning*.
+  - **Requirements Overview:** Access the SRS and requirements table grouped under *Requirements*.
+- **Navigation Focus:**  
+  - A quick, high-level filtering (or dropdown) to switch between Planning, Requirements, and Design.  
+  - A unified artifact sub-navigation that lets them quickly jump to a specific artifact (e.g., "SRS Document" or "Wireframe").
+
+### **For Developers:**
+- **Preferred Views:**
+  - **Technical Artifacts:** Prioritize details like API lists, ER diagrams, screen maps, and technical diagrams grouped under *Design*.  
+  - Optionally, the requirements table for context.
+- **Navigation Focus:**  
+  - A similar filtering approach where the developer can select *Design* and then use the sub-navigation to view detailed technical artifacts (or even a more granular menu such as "API List" or "Screen Maps" if needed).
+
+### **Unified Navigation vs. SDLC Phase Tabs:**
+- Instead of exposing separate high-level tabs labeled “Project Plan,” “Requirements,” and “Basic Design,” the layout could:
+  - Use a **single AppBar with a dynamic action area** where the actions and displayed information change based on the selected SDLC phase.
+  - Rely on an **artifact subnav** that only shows the names/icons of currently open artifacts or frequently used ones.
+  
+This unified approach minimizes vertical space while still letting both product owners and developers quickly switch contexts.
+
+---
+
+## 4. Visual Summary (Wireframe)
+
+```
+---------------------------------------------------------------
+| Top AppBar: [Workspace Title] [Context Actions] [SDLC Toggle] |
+---------------------------------------------------------------
+| Artifact Subnav: [Idea Notes] [Wireframes] [Backlog] ...       |
+---------------------------------------------------------------
+|                  Main Content Area                           |
+|    (Displays detailed view for the selected artifact)        |
+|                                                             |
+|                                                             |
+---------------------------------------------------------------
+```
+
+*Key points:*
+- **SDLC Toggle:** Could be a dropdown or segmented control letting users select between *Planning*, *Requirements*, and *Design*.  
+- **Artifact Subnav:** Displays only minimal information (icon and title) to avoid consuming much vertical space.
+- **Main Content Area:** Uses the majority of the screen for the work itself.
+
+---
+
+## Final Thoughts
+
+By consolidating the SDLC phase navigation into the AppBar and reducing the number of tab layers, you free up more screen real estate for the content, which is especially important on devices with limited vertical space. This approach also keeps the UI cleaner and more adaptable for both product owners and developers by letting them focus on the artifacts relevant to their roles.
+
+Does this proposed layout and artifact mapping address your concerns?

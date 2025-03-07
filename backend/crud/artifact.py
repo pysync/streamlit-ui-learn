@@ -100,7 +100,10 @@ def search_artifacts(
             query = query.where(Artifact.status == status)
         if keyword:
             query = query.where(Artifact.title.contains(keyword) | Artifact.content.contains(keyword))
+        
+        query = query.order_by(desc(Artifact.updated_at))
         artifacts = session.exec(query).all()
+        
         total = len(artifacts)
     return artifacts, total
     

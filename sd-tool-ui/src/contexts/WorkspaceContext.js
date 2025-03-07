@@ -21,11 +21,10 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const [openedArtifacts, setOpenedArtifacts] = useState([]); // Opened artifacts state
     const [activeArtifactDocumentId, setActiveArtifactDocumentId] = useState(null); // Active tab state
     const [activeArtifact, setActiveArtifact] = useState(null); // The active artifact object
-
+    const [isLoading, setIsLoading] = useState(false);
 
     const { loading, showLoading, hideLoading } = useLoading()
     const { showError, clearMessage } = useMessage()
-
 
     // Effect to update activeArtifact when activeArtifactDocumentId changes
     useEffect(() => {
@@ -113,15 +112,32 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         showLoading();
         try {
             const updatedArtifact = await updateArtifactVersion(documentId, artifactData);
-            await execLoadArtifacts();
-            updateOpenedArtifactInList(updatedArtifact); // Update opened artifacts list
+            
+            // Update the artifact in the artifacts list without reloading everything
+            setArtifacts(currentArtifacts => {
+                if (!currentArtifacts || !currentArtifacts.items) return currentArtifacts;
+                
+                return {
+                    ...currentArtifacts,
+                    items: currentArtifacts.items.map(artifact => {
+                        if (artifact.document_id === documentId) {
+                            return updatedArtifact; // Replace with updated artifact
+                        }
+                        return artifact;
+                    })
+                };
+            });
+            
+            // Also update in opened artifacts list
+            updateOpenedArtifactInList(updatedArtifact);
+            
             return updatedArtifact;
         } catch (error) {
             console.error("Error updating artifact:", error);
             showError("Failed to update artifact.");
             throw error;
         } finally {
-           hideLoading();
+            hideLoading();
         }
     };
 
@@ -209,6 +225,18 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         setActiveArtifactDocumentId(tempDocumentId); // Set the new artifact as active
     }, [setOpenedArtifacts, setActiveArtifactDocumentId]);
 
+    const fetchArtifacts = async (workspaceId) => {
+        try {
+            setIsLoading(true);
+            const artifactsData = await listArtifacts(workspaceId);
+            setArtifacts(artifactsData);
+        } catch (error) {
+            console.error('Error fetching artifacts:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const value = {
         currentWorkspace,
         setCurrentWorkspace,
@@ -220,7 +248,6 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         uploadArtifact,
         execSetArtifactMeta,
         updateArtifactVersion,
-
         openedArtifacts,       // Opened artifacts list
         addOpenedArtifact,     // Add artifact to opened list  
         removeOpenedArtifact,  // Remove artifact from opened list
@@ -230,6 +257,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         updateOpenedArtifactInList, // Update an artifact in the opened list
         addNewEmptyArtifactToOpenedList, // Add a new empty artifact
         setActiveArtifactDocumentId, // Set active artifact by document ID
+        fetchArtifacts,
     };
 
     return (

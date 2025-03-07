@@ -1,67 +1,76 @@
 // src/components/ProjectPlan/ProjectPlanTab.js
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
-    Toolbar,
-    AppBar,
-    Tabs,
-    Tab,
-    Button,
     Paper,
     Typography,
     IconButton,
     Tooltip,
-
-    CircularProgress,
 } from '@mui/material';
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels'; // Correct Import: PanelGroup, Panel, PanelResizeHandle
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import MarkdownEditor from './MarkdownEditor';
 import ExcalidrawComponent from './ExcalidrawComponent';
 import BacklogBoard from './BacklogBoard';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet'; // Import TextSnippetIcon
-import BrushIcon from '@mui/icons-material/Brush';          // Import BrushIcon
-import AddIcon from '@mui/icons-material/Add';
-import { useWorkspace } from '../../contexts/WorkspaceContext'; // Import useWorkspace
-import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
-import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
-import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useLoading } from '../../contexts/LoadingContext';
+import { useMessage } from '../../contexts/MessageContext';
+import { ARTIFACT_TYPES } from '../../constants/sdlcPhases';
+import { useEditor } from '../../contexts/EditorContext';
 
 const ProjectPlanTab = () => {
     const [isNotesPaneVisible, setIsNotesPaneVisible] = useState(true);
     const [isWireframePaneVisible, setIsWireframePaneVisible] = useState(false);
     const panelGroupRef = useRef(null);
 
-
-    const [noteMarkdownContent, setNoteMarkdownContent] = useState(''); // State for note content in ProjectPlanTab
-    const [noteTitle, setNoteTitle] = useState('Idea Note'); // State for note title in ProjectPlanTab
+    const [noteMarkdownContent, setNoteMarkdownContent] = useState('');
+    const [noteTitle, setNoteTitle] = useState('Idea Note');
     
-    const { showLoading, hideLoading } = useLoading();    // Use Loading Context
-    const { showSuccess, showError, clearMessage } = useMessage();    // Use Message Context
+    const { showLoading, hideLoading } = useLoading();
+    const { showSuccess, showError, clearMessage } = useMessage();
 
-
-    const { currentWorkspace, execCreateArtifact,
-        execUpdateArtifact, openedArtifacts,
-        removeOpenedArtifact, activeArtifactDocumentId,
+    const { 
+        currentWorkspace, 
+        execCreateArtifact,
+        execUpdateArtifact, 
+        openedArtifacts,
+        removeOpenedArtifact, 
+        activeArtifactDocumentId,
         selectArtifact,
         addNewEmptyArtifactToOpenedList,
         setActiveArtifactDocumentId,
         updateOpenedArtifactInList,
         activeArtifact
-    } = useWorkspace(); // Get context functions
+    } = useWorkspace();
 
-    // console.log("current active artifact is: ", activeArtifact);
+    const { registerSaveHandler, registerFullscreenHandler } = useEditor();
 
-    useEffect(() => { // useEffect to update local state when activeArtifact changes
+    // Add isFullScreen state
+    const [isFullScreen, setIsFullScreen] = useState(false);
+
+    // Load content when active artifact changes
+    useEffect(() => {
         if (activeArtifact) {
-            setNoteMarkdownContent(activeArtifact.content || ''); // Load content from activeArtifact to local state
-            setNoteTitle(activeArtifact.title || 'Idea Note');   // Load title from activeArtifact to local state
+            setNoteMarkdownContent(activeArtifact.content || '');
+            setNoteTitle(activeArtifact.title || 'Idea Note');
+            
+            // Determine which panes to show based on artifact type
+            if (activeArtifact.art_type === ARTIFACT_TYPES.NOTE) {
+                setIsNotesPaneVisible(true);
+                setIsWireframePaneVisible(false);
+            } else if (activeArtifact.art_type === ARTIFACT_TYPES.WIREFRAME) {
+                setIsNotesPaneVisible(false);
+                setIsWireframePaneVisible(true);
+            } else {
+                // Default for other types or new artifacts
+                setIsNotesPaneVisible(true);
+                setIsWireframePaneVisible(false);
+            }
         } else {
-            handleCreateNewNote()
+            handleCreateNewNote();
         }
-    }, [activeArtifact]); // Dependency: activeArtifact
-
+    }, [activeArtifact]);
 
     const handleToggleNotesPane = () => {
         setIsNotesPaneVisible(!isNotesPaneVisible);
@@ -72,18 +81,17 @@ const ProjectPlanTab = () => {
     };
 
     const handleCreateNewNote = () => {
-        setNoteMarkdownContent(''); // Clear content when creating new note
-        setNoteTitle('Idea Note'); // Reset title for new note
-        addNewEmptyArtifactToOpenedList(); // Call addNewEmptyArtifactToOpenedList from context
+        setNoteMarkdownContent('');
+        setNoteTitle('Idea Note');
+        addNewEmptyArtifactToOpenedList();
     };
 
-
-    const handleSaveNote = async () => { // Implement handleSaveNote in ProjectPlanTab
-        showLoading(); // Start loading for Save button
+    const handleSaveNote = async () => {
+        showLoading();
         clearMessage();
         try {
             if (!noteMarkdownContent.trim()) {
-                showError("Content cannot be empty to save."); // Basic validation
+                showError("Content cannot be empty to save.");
                 return;
             }
 
@@ -93,204 +101,162 @@ const ProjectPlanTab = () => {
             }
 
             let artifactData;
+            let updatedArtifact;
 
-            if(activeArtifact && !activeArtifact.isNew) { // Check if activeArtifact exists AND is NOT new
-                // Update existing artifact
+            if(activeArtifact && !activeArtifact.isNew) {
+                // Existing artifact - update it
                 artifactData = {
                     title: noteTitle,
                     content: noteMarkdownContent,
-                    art_type: activeArtifact.art_type || 'note', // Use existing art_type or default to 'note'
-                    dependencies: activeArtifact.dependencies || [] // Get dependencies from current state
+                    art_type: activeArtifact.art_type || ARTIFACT_TYPES.NOTE,
+                    dependencies: activeArtifact.dependencies || []
                 };
                 
-                await execUpdateArtifact(activeArtifact.document_id, artifactData);
+                // Update the artifact via the API
+                updatedArtifact = await execUpdateArtifact(activeArtifact.document_id, artifactData);
                 
-                // Update the artifact in the opened list to reflect changes
-                const updatedArtifact = {
-                    ...activeArtifact,
-                    title: noteTitle,
-                    content: noteMarkdownContent
-                    // Dependencies are preserved from currentActiveArtifact
-                };
-                updateOpenedArtifactInList(updatedArtifact);
+                // No need to call updateOpenedArtifactInList here as execUpdateArtifact already does it
             } else {
-                // Create new artifact with properties from inspector
+                // New artifact - create it
                 artifactData = {
-                    document_id: activeArtifact.document_id, // Use existing temp ID
+                    document_id: activeArtifact.document_id,
                     title: noteTitle,
                     content: noteMarkdownContent,
-                    art_type: activeArtifact.art_type || 'note', // Use art_type set in inspector or default
-                    dependencies: activeArtifact.dependencies || [], // Use dependencies from current state
+                    art_type: activeArtifact.art_type || ARTIFACT_TYPES.NOTE,
+                    dependencies: activeArtifact.dependencies || [],
                     workspace_id: currentWorkspace.id,
                 };
                 
-                const createdArtifact = await execCreateArtifact(artifactData);
+                // Create the artifact via the API
+                updatedArtifact = await execCreateArtifact(artifactData);
                 
-                // Make sure we preserve any dependencies that might have been set in the inspector
+                // Update the opened artifact with the created one
                 const updatedCreatedArtifact = {
-                    ...createdArtifact,
-                    dependencies: artifactData.dependencies // Ensure dependencies are preserved
+                    ...updatedArtifact,
+                    dependencies: artifactData.dependencies
                 };
                 
-                updateOpenedArtifactInList(updatedCreatedArtifact); 
-                setActiveArtifactDocumentId(createdArtifact.document_id); 
+                updateOpenedArtifactInList(updatedCreatedArtifact);
+                setActiveArtifactDocumentId(updatedArtifact.document_id);
             }
-            // Optionally refresh artifact list in sidebar here if needed
-            showSuccess("Note saved successfully!"); // Use success message
+            
+            showSuccess("Note saved successfully!");
         } catch (error) {
             console.error("Error saving note:", error);
-            showError(`Failed to save note: ${error.message}`); // Include error details
+            showError(`Failed to save note: ${error.message}`);
         } finally {
-            hideLoading(); // End loading for Save button
+            hideLoading();
         }
     };
 
+    // Then update the useEffect for registering handlers
+    useEffect(() => {
+        registerSaveHandler(handleSaveNote);
+        registerFullscreenHandler(() => setIsFullScreen(prev => !prev));
+        
+        return () => {
+            registerSaveHandler(null);
+            registerFullscreenHandler(null);
+        };
+    }, [registerSaveHandler, registerFullscreenHandler]);
 
-    // Callbacks to update LOCAL state only
     const handleNoteContentChange = (newContent) => {
-        setNoteMarkdownContent(newContent); // Update LOCAL markdownContent state
-    }; // No dependencies needed, stable callback
-
-    const handleNoteTitleChange = (newTitle) => {
-        setNoteTitle(newTitle); // Update LOCAL noteTitle state
-    } // No dependencies needed, stable callback
-    
-    // const handleNoteContentChange = useCallback((newContent) => {
-    //     if (activeArtifactDocumentId) {
-    //         const existingArtifact = openedArtifacts.find(art => art.document_id === activeArtifactDocumentId); // Find existing artifact
-    //         if (existingArtifact) {
-    //             updateOpenedArtifactInList({
-    //                 ...existingArtifact, // Copy existing artifact data
-    //                 content: newContent  // Update only the content field
-    //             });
-    //         }
-    //     }
-    // }, [activeArtifactDocumentId, openedArtifacts, updateOpenedArtifactInList]); // Add openedArtifacts to dependencies
-
-    // const handleNoteTitleChange = useCallback((newTitle) => {
-    //     if (activeArtifactDocumentId) {
-    //         const existingArtifact = openedArtifacts.find(art => art.document_id === activeArtifactDocumentId); // Find existing artifact
-    //         if (existingArtifact) {
-    //             updateOpenedArtifactInList({
-    //                 ...existingArtifact, // Copy existing artifact data
-    //                 title: newTitle     // Update only the title field
-    //             });
-    //         }
-    //     }
-    // }, [activeArtifactDocumentId, openedArtifacts, updateOpenedArtifactInList]); // Add openedArtifacts to dependencies
-
-    const handleCloseTab = (documentId) => {
-        removeOpenedArtifact(documentId); // Call removeOpenedArtifact from WorkspaceContext
+        setNoteMarkdownContent(newContent);
     };
 
-    const handleTabChange = (event, newValue) => { // Ensure this function is present
-        selectArtifact(newValue); // Call selectArtifact from context to update active tab
+    const handleNoteTitleChange = (newTitle) => {
+        setNoteTitle(newTitle);
+    };
+
+    // Render the appropriate content based on the active artifact type
+    const renderContent = () => {
+        if (!activeArtifact) {
+            return (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <Typography variant="h6" color="text.secondary">
+                        Select an artifact or create a new one
+                    </Typography>
+                </Box>
+            );
+        }
+
+        // For now, we'll just show the split pane layout for all artifacts
+        return (
+            <Box>
+                <PanelGroup direction="horizontal" ref={panelGroupRef}>
+                    {isNotesPaneVisible && (
+                        <Panel
+                            className="panel-item"
+                            minSize={20}
+                            defaultSize={isWireframePaneVisible ? 50 : 100}
+                            id="notes-panel-id"
+                        >
+                            <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
+                                    <MarkdownEditor
+                                        noteTitle={noteTitle || ""}
+                                        markdownContent={noteMarkdownContent || ""}
+                                        onContentChange={handleNoteContentChange}
+                                        onTitleChange={handleNoteTitleChange}
+                                        onSave={handleSaveNote}
+                                        artifactId={activeArtifact?.document_id}
+                                    />
+                                </Paper>
+                            </Box>
+                        </Panel>
+                    )}
+                    
+                    {isNotesPaneVisible && isWireframePaneVisible && <PanelResizeHandle className="resizer" />}
+
+                    {isWireframePaneVisible && (
+                        <Panel
+                            className="panel-item"
+                            minSize={20}
+                            defaultSize={50}
+                            id="wireframe-panel-id"
+                        >
+                            <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
+                                    <Typography variant="h6" gutterBottom>Draft Wireframe</Typography>
+                                    <ExcalidrawComponent />
+                                </Paper>
+                            </Box>
+                        </Panel>
+                    )}
+                </PanelGroup>
+
+                {activeArtifact.art_type === ARTIFACT_TYPES.BACKLOG_ITEM && (
+                    <Box mt={2}>
+                        <Paper elevation={2} sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>Project Backlog</Typography>
+                            <BacklogBoard />
+                        </Paper>
+                    </Box>
+                )}
+            </Box>
+        );
     };
 
     return (
-        <Box>
-            <Toolbar>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={handleCreateNewNote}
-                    sx={{ ml: 1 }}
-                    startIcon={<AddIcon />}
-                >
-                    New Note
-                </Button>
-
-
-                {/* Toggle Buttons for Panes - Updated Icons */}
-                <Tooltip title={isNotesPaneVisible ? "Hide Idea Notes" : "Show Idea Notes"}>
-                    <IconButton color="inherit" onClick={handleToggleNotesPane}>
-                        {isNotesPaneVisible ? <TextSnippetIcon /> : <VisibilityOffIcon />} {/* TextSnippetIcon for Notes */}
+        <Box 
+            id="project-plan-tab"
+            sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            data-save-handler={handleSaveNote}
+        >
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Tooltip title={isNotesPaneVisible ? "Hide Notes" : "Show Notes"}>
+                    <IconButton onClick={handleToggleNotesPane} size="small" sx={{ mr: 1 }}>
+                        {isNotesPaneVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={isWireframePaneVisible ? "Hide Wireframe" : "Show Wireframe"}>
-                    <IconButton color="inherit" onClick={handleToggleWireframePane}>
-                        {isWireframePaneVisible ? <BrushIcon /> : <VisibilityOffIcon />} {/* BrushIcon for Wireframe */}
+                    <IconButton onClick={handleToggleWireframePane} size="small">
+                        {isWireframePaneVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
                     </IconButton>
                 </Tooltip>
-                {/* Add more toolbar buttons if needed */}
-            </Toolbar>
-
-            {/* Sub-Tabs for Opened Artifacts */}
-            <AppBar position="static" color="default" elevation={0}>
-                <Tabs
-                    value={activeArtifactDocumentId}
-                    onChange={handleTabChange}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                    aria-label="scrollable auto tabs"
-                >
-                    {openedArtifacts.map((artifact) => (
-                        <Tab
-                            key={artifact.document_id}
-                            value={artifact.document_id}
-                            label={artifact.title || "New Note"}
-                            aria-label={artifact.title || "New Note"}
-                            wrapped
-                            onClose={() => handleCloseTab(artifact.document_id)}
-                        />
-                    ))}
-                </Tabs>
-            </AppBar>
-
-            <PanelGroup // Correct Component: PanelGroup
-                direction="horizontal" // or "vertical"
-                className="panels-container" // Optional class name for styling
-                ref={panelGroupRef} // Attach the ref
-                id="panel-group-id" // Add an ID for PanelGroup (important for react-resizable-panels)
-            >
-                {/* Idea Notes Panel */}
-                {isNotesPaneVisible && (
-                    <Panel
-                        className="panel-item"
-                        minSize={20}
-                        defaultSize={50}
-                        id="notes-panel-id"
-                    >
-                        <Box sx={{ height: 'calc(100vh - 200px)', overflow: 'auto' }}>
-                            <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
-                                <MarkdownEditor
-                                    noteTitle={noteTitle || ""}                 // Pass noteTitle prop
-                                    markdownContent={noteMarkdownContent || ""}   // Pass markdownContent prop
-                                    onContentChange={handleNoteContentChange} // Pass onContentChange callback
-                                    onTitleChange={handleNoteTitleChange}     // Pass onTitleChange callback
-                                    onSave={handleSaveNote}
-                                />
-                            </Paper>
-                        </Box>
-                    </Panel>
-                )}
-                {isNotesPaneVisible && isWireframePaneVisible && <PanelResizeHandle className="resizer" />} {/* Correct Component: PanelResizeHandle */} {/* Resizer between panes */}
-
-                {/* Draft Wireframe Panel */}
-                {isWireframePaneVisible && (
-                    <Panel
-                        className="panel-item" // Optional class name for styling
-                        minSize={20}
-                        defaultSize={50}
-                        id="wireframe-panel-id" // Add an ID for Panel (important for react-resizable-panels)
-                    >
-                        <Box sx={{ height: 'calc(100vh - 200px)', overflow: 'auto' }}>
-                            <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
-                                <Typography variant="h6" gutterBottom>Draft Wireframe (Excalidraw)</Typography>
-                                <ExcalidrawComponent />
-                            </Paper>
-                        </Box>
-                    </Panel>
-                )}
-            </PanelGroup>
-
-
-            <Box mt={2}>
-                <Paper elevation={2} sx={{ p: 2 }}>
-                    <Typography variant="h6" gutterBottom>Project Backlog (Trello-style)</Typography>
-                    <BacklogBoard />
-                </Paper>
             </Box>
+            
+            {renderContent()}
         </Box>
     );
 };

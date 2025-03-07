@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 
 import { LoadingProvider } from './contexts/LoadingContext';
 import { MessageProvider } from './contexts/MessageContext';
+import { EditorProvider } from './contexts/EditorContext';
 
 import MessageSnackbar from './components/Common/MessageSnackbar';
 import LoadingIndicator from './components/Common/LoadingIndicator';
@@ -15,11 +16,12 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <MessageProvider>
         <LoadingProvider>
-          <MessageSnackbar />
-          <LoadingIndicator />
-          
-          <AppRoutes />
-          
+          <EditorProvider>
+            <MessageSnackbar />
+            <LoadingIndicator />
+            
+            <AppRoutes />
+          </EditorProvider>
         </LoadingProvider>
       </MessageProvider>
     </ThemeProvider>

@@ -92,7 +92,7 @@ export async function listArtifacts(
   limit = 10,
   art_type = null,
   version = null,
-  status = null,
+  status = 'current',
   keyword = null
 ) {
   let url = `${BASE_URL}/artifacts/?workspace_id=${workspace_id}&page=${page}&limit=${limit}`;
@@ -321,6 +321,11 @@ export async function downloadArtifact(document_id, filename) {
  */
 export const getContextActions = async () => {
   try {
+    // Instead of making an actual API call that might fail,
+    // just return the default actions for now
+    // When the API is ready, uncomment the fetch code
+    
+    /*
     const response = await fetch('/api/context-actions', {
       method: 'GET',
       headers: {
@@ -334,6 +339,15 @@ export const getContextActions = async () => {
 
     const data = await response.json();
     return data.context_actions || [];
+    */
+    
+    // Return default actions
+    return [
+      { id: 1, title: "Quick Refine", msg: "Help me refine this document" },
+      { id: 2, title: "Summarize", msg: "Summarize this content" },
+      { id: 3, title: "Extract Requirements", msg: "Extract requirements from this text" },
+      { id: 4, title: "Suggest Improvements", msg: "Suggest improvements for this document" }
+    ];
   } catch (error) {
     console.error('Error fetching context actions:', error);
     // Return some default actions as fallback
