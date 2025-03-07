@@ -34,6 +34,7 @@ import { useEditor } from '../contexts/EditorContext';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
 import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
+import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import ButtonGroup from '@mui/material/ButtonGroup';
 
 const drawerWidth = 240;
@@ -301,7 +302,7 @@ const WorkingSpaceContent = () => {
 
                     {/* Layout Controls */}
                     <ButtonGroup size="small" variant="outlined" sx={{ ml: 2 }}>
-                        <Tooltip title="Single Panel">
+                        <Tooltip title="Notes Only">
                             <IconButton 
                                 onClick={() => setLayoutMode('single')}
                                 color={layoutMode === 'single' ? "primary" : "default"}
@@ -309,7 +310,7 @@ const WorkingSpaceContent = () => {
                                 <TableRowsIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Split Vertical">
+                        <Tooltip title="Split View">
                             <IconButton 
                                 onClick={() => setLayoutMode('vertical')}
                                 color={layoutMode === 'vertical' ? "primary" : "default"}
@@ -317,12 +318,20 @@ const WorkingSpaceContent = () => {
                                 <VerticalSplitIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title="Split Horizontal">
+                        <Tooltip title="Horizontal Split">
                             <IconButton 
                                 onClick={() => setLayoutMode('horizontal')}
                                 color={layoutMode === 'horizontal' ? "primary" : "default"}
                             >
                                 <HorizontalSplitIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Wireframe Only">
+                            <IconButton 
+                                onClick={() => setLayoutMode('wireframe')}
+                                color={layoutMode === 'wireframe' ? "primary" : "default"}
+                            >
+                                <ViewQuiltIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
                     </ButtonGroup>

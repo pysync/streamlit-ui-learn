@@ -90,6 +90,10 @@ const ProjectPlanTab = ({ layoutMode }) => {
                 setIsNotesPaneVisible(true);
                 setIsWireframePaneVisible(true);
                 break;
+            case 'wireframe':
+                setIsNotesPaneVisible(false);
+                setIsWireframePaneVisible(true);
+                break;
             default:
                 setIsNotesPaneVisible(true);
                 setIsWireframePaneVisible(false);
@@ -301,7 +305,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                         <Panel
                             className="panel-item"
                             minSize={20}
-                            defaultSize={50}
+                            defaultSize={isNotesPaneVisible ? 50 : 100}
                         >
                             <Box sx={{ height: '100%', overflow: 'auto' }}>
                                 <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
