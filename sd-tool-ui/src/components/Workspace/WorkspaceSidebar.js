@@ -28,6 +28,8 @@ import CreateArtifactDialog from '../Artifact/CreateArtifactDialog';
 import ArtifactInspector from '../Artifact/ArtifactInspector';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { getArtifactTypeLabel } from '../../constants/artifactTypes';
+import { useNavigate } from 'react-router-dom';
+import LogoDevIcon from '@mui/icons-material/LogoDev';
 
 const drawerWidth = 240;
 
@@ -64,6 +66,7 @@ const WorkspaceSidebar = () => {
       activeArtifactDocumentId,
       activeArtifact
     } = useWorkspace();
+    const navigate = useNavigate();
 
     const handleArtifactSelect = (artifact) => {
         addOpenedArtifact(artifact); // Add selected artifact to opened list
@@ -76,6 +79,10 @@ const WorkspaceSidebar = () => {
 
     const handleCreateArtifactDialogClose = () => {
         setIsCreateArtifactDialogOpen(false);
+    };
+
+    const handleLogoClick = () => {
+        navigate('/');
     };
 
     const isEmpty = !(artifacts && artifacts.items && artifacts.items.length > 0);
@@ -93,7 +100,36 @@ const WorkspaceSidebar = () => {
             variant="permanent"
             anchor="left"
         >
-            <Toolbar />
+            <Box 
+                sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    cursor: 'pointer',
+                    '&:hover': {
+                        bgcolor: 'action.hover',
+                    },
+                }}
+                onClick={handleLogoClick}
+            >
+                <LogoDevIcon 
+                    sx={{ 
+                        fontSize: 40, 
+                        color: 'primary.main',
+                        mr: 1 
+                    }} 
+                />
+                <Typography 
+                    variant="h6" 
+                    color="primary"
+                    sx={{ 
+                        fontWeight: 'bold',
+                        letterSpacing: 1 
+                    }}
+                >
+                    SD-TOOL
+                </Typography>
+            </Box>
             <Divider />
 
             {/* Artifact Inspector section */}
