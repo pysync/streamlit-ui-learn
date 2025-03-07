@@ -22,11 +22,17 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
 import { getArtifactVersions, rollbackArtifactVersion, deleteArtifactById } from '../../services/client';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
 
 const ArtifactVersionsDialog = ({ open, onClose, documentId, currentVersion }) => {
   const [versions, setVersions] = useState([]);
   const { showLoading, hideLoading } = useLoading();
   const { showMessage, showError } = useMessage();
+  const { 
+    execLoadArtifacts, 
+    updateOpenedArtifactInList,
+    getCurrentArtifact
+  } = useWorkspace();
 
   useEffect(() => {
     if (open && documentId) {
@@ -69,8 +75,18 @@ const ArtifactVersionsDialog = ({ open, onClose, documentId, currentVersion }) =
     showLoading();
     try {
       await rollbackArtifactVersion(documentId, version);
+      
+      // Reload the artifacts list
+      await execLoadArtifacts();
+      
+      // Get the updated artifact after rollback
+      const updatedArtifact = await getCurrentArtifact(documentId);
+      
+      // Update the opened artifact in the list
+      updateOpenedArtifactInList(updatedArtifact);
+      
       showMessage('Rollback successful');
-      onClose(); // Close dialog after successful rollback
+      onClose();
     } catch (error) {
       console.error('Error rolling back:', error);
       showError('Failed to rollback');

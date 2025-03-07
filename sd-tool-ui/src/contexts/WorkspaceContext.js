@@ -7,7 +7,8 @@ import { getWorkspace,
         updateArtifactVersion,
         setArtifactMeta,
         deleteArtifactById,
-        uploadArtifact
+        uploadArtifact,
+        getCurrentArtifact as getArtifactFromAPI
       } from '../services/client';
 import { useLoading } from './LoadingContext';
 import { useMessage } from './MessageContext';
@@ -237,6 +238,16 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         }
     };
 
+    const getCurrentArtifact = async (documentId) => {
+        try {
+            const artifact = await getArtifactFromAPI(documentId);
+            return artifact;
+        } catch (error) {
+            console.error('Error getting current artifact:', error);
+            throw error;
+        }
+    };
+
     const value = {
         currentWorkspace,
         setCurrentWorkspace,
@@ -258,6 +269,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         addNewEmptyArtifactToOpenedList, // Add a new empty artifact
         setActiveArtifactDocumentId, // Set active artifact by document ID
         fetchArtifacts,
+        getCurrentArtifact,
     };
 
     return (
