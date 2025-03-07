@@ -17,7 +17,7 @@ import SaveIcon from '@mui/icons-material/Save'; // Import SaveIcon
 import { aiService } from '../../services/aiService';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
-import { useError } from '../../contexts/ErrorContext';     // Import Error Context
+import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
 import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
 
 

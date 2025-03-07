@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
-import { useError } from '../../contexts/ErrorContext';     // Import Error Context
+import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
 import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
 
 const CreateArtifactDialog = ({ open, onClose }) => {
@@ -28,11 +28,11 @@ const CreateArtifactDialog = ({ open, onClose }) => {
     const [ uploadFile, setUploadFile] = useState(null); // State for uploaded file
     const { currentWorkspace, execCreateArtifact, execUpdateArtifact, uploadArtifact, execSetArtifactMeta} = useWorkspace();
     const { showLoading, hideLoading } = useLoading();    // Use Loading Context
-    const { showError, clearError } = useError();        // Use Error Context
+    const { showError, clearMessage } = useMessage();    // Use Message Context
 
     
     const handleTextArtifactCreate = async () => {
-        clearError(); // Clear any previous errors
+        clearMessage(); // Clear any previous messages
         showLoading();
         try {
             if (!title || !artType) {
@@ -58,7 +58,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
     };
 
     const handleFileUploadArtifactCreate = async () => {
-        clearError(); // Clear any previous errors
+        clearMessage(); // Clear any previous messages
         showLoading();
         if (!title || !artType || !uploadFile) {
             showError("Please enter title, select artifact type, and upload a file.");
@@ -101,7 +101,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
 
     const handleClose = () => {
         onClose();
-        clearError(); // Clear error on dialog close
+        clearMessage(); // Clear messages on dialog close
         // Clear form fields on close if needed
         setTitle('');
         setArtType('note');
