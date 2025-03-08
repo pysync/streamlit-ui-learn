@@ -109,9 +109,23 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
             // Ensure we have a document_id
             const documentId = artifactData.document_id || generateDocumentId();
             
-            const newArtifact = await createArtifact(currentWorkspace.id, {
+            // First check if we already have an active artifact with this document_id
+            // This handles the case of a "New Note" being saved
+            if (activeArtifact && activeArtifact.document_id === documentId) {
+                // Merge the current active artifact data with the provided data
+                // This ensures we use the latest values from both sidebar and editor
+                artifactData = {
+                    ...activeArtifact,
+                    ...artifactData,
+                    document_id: documentId,
+                    workspace_id: currentWorkspace.id
+                };
+            }
+            
+            const newArtifact = await createArtifact({
                 ...artifactData,
                 document_id: documentId,
+                workspace_id: currentWorkspace.id,
                 content: artifactData.content || '',
                 dependencies: artifactData.dependencies || []
             });
@@ -327,6 +341,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         toggleSticky,
         showArtifactTypeList,
         setShowArtifactTypeList,
+        setActiveArtifact,
     };
 
     return (

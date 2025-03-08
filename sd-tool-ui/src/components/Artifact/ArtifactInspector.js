@@ -43,12 +43,22 @@ const ArtifactInspector = ({ artifact }) => {
   
   const [originalValues, setOriginalValues] = useState({});
 
-  const { execUpdateArtifact, artifacts, updateOpenedArtifactInList } = useWorkspace();
+  const { 
+    execUpdateArtifact, 
+    artifacts, 
+    updateOpenedArtifactInList, 
+    setActiveArtifact,
+    activeArtifactDocumentId,
+    activeArtifact 
+  } = useWorkspace();
   const { showLoading, hideLoading } = useLoading();
   const { showMessage, showError } = useMessage();
 
   // Add new state for versions dialog
   const [versionsDialogOpen, setVersionsDialogOpen] = useState(false);
+
+  // First, add the missing state and import activeArtifactDocumentId
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load artifact data when component receives a new artifact
   useEffect(() => {
@@ -88,6 +98,27 @@ const ArtifactInspector = ({ artifact }) => {
     }
   }, [dependencies, artifacts]);
 
+  // Fix the updateActiveArtifact function to be safer
+  const updateActiveArtifact = (changes) => {
+    // Only attempt to update if setActiveArtifact exists and this is the active artifact
+    if (typeof setActiveArtifact === 'function' && 
+        artifact && 
+        activeArtifact && 
+        artifact.document_id === activeArtifact.document_id) {
+      
+      try {
+        setActiveArtifact(prev => ({
+          ...prev,
+          ...changes
+        }));
+      } catch (e) {
+        console.warn('Error updating active artifact:', e);
+        // Continue with the save even if this fails
+      }
+    }
+  };
+
+  // Update the handleSave to make it more resilient
   const handleSave = async () => {
     if (!title.trim()) {
       showError('Title cannot be empty');
@@ -95,26 +126,37 @@ const ArtifactInspector = ({ artifact }) => {
     }
 
     showLoading();
+    setIsLoading(true);
+    
     try {
+      const updatedData = {
+        title,
+        art_type: artType,
+        dependencies
+      };
+      
+      // Try to update the active artifact but don't let it block the save
+      try {
+        updateActiveArtifact(updatedData);
+      } catch (e) {
+        console.warn('Could not update active artifact:', e);
+      }
+      
+      // Continue with the normal save process
       if (artifact.isNew) {
+        // For new artifacts, update the local list while waiting for save
         const updatedArtifact = {
           ...artifact,
-          title,
-          art_type: artType,
-          dependencies
+          ...updatedData
         };
         updateOpenedArtifactInList(updatedArtifact);
         showMessage('Properties updated. Save in editor to create the artifact.', 'success');
       } else {
-        const artifactData = {
-          title,
-          art_type: artType,
-          content: null,
-          dependencies
-        };
-        await execUpdateArtifact(artifact.document_id, artifactData);
+        // For existing artifacts, update on the server
+        await execUpdateArtifact(artifact.document_id, updatedData);
         showMessage('Artifact updated successfully', 'success');
       }
+      
       setIsDirty(false);
       setOriginalValues({ title, artType, dependencies });
     } catch (error) {
@@ -122,6 +164,7 @@ const ArtifactInspector = ({ artifact }) => {
       showError(`Failed to update artifact: ${error.message}`);
     } finally {
       hideLoading();
+      setIsLoading(false);
     }
   };
 

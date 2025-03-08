@@ -44,6 +44,7 @@ const MarkdownEditor = ({
     const editorRef = useRef(null);
     const { showLoading, hideLoading } = useLoading();
     const { showError } = useMessage();
+    const [saved, setSaved] = useState(false);
 
     // Fetch context actions when component mounts
     useEffect(() => {
@@ -102,6 +103,18 @@ const MarkdownEditor = ({
         } finally {
             hideLoading();
         }
+    };
+
+    const handleSave = async () => {
+        if (onSave) {
+            // Make sure we're using the latest metadata from the active artifact
+            // This ensures changes from the inspector are included
+            await onSave({
+                content: markdownContent,
+                title: noteTitle
+            });
+        }
+        setSaved(true);
     };
 
     return (
@@ -169,7 +182,7 @@ const MarkdownEditor = ({
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={onSave}
+                                onClick={handleSave}
                                 sx={{ ml: 1 }}
                                 startIcon={<SaveIcon />}
                                 size="small"
