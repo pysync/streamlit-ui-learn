@@ -109,7 +109,13 @@ const WorkingSpaceContent = () => {
             setShowGuide(true);
             setShowArtifactTypeList(null);
             setActiveArtifactDocumentId(null);
+        } else if (newValue === 'type-list') {
+            // When type-list tab is selected
+            setShowGuide(false);
+            setActiveArtifactDocumentId(null);
         } else if (newValue !== null) {
+            setShowGuide(false);
+            setShowArtifactTypeList(null);
             selectArtifact(newValue);
         }
     };
@@ -304,6 +310,16 @@ const WorkingSpaceContent = () => {
                                                     <Box sx={{ ml: 1 }}>
                                                         {getArtifactTypeLabel(showArtifactTypeList)} List
                                                     </Box>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowArtifactTypeList(null);
+                                                        }}
+                                                        sx={{ ml: 1, p: 0.5 }}
+                                                    >
+                                                        <CloseIcon fontSize="small" />
+                                                    </IconButton>
                                                 </Box>
                                             }
                                             value="type-list"
