@@ -172,29 +172,49 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const execUpdateArtifact = async (documentId, artifactData) => {
         showLoading();
         try {
-            console.log("execUpdateArtifact: artifactData = ", artifactData);
+            // Make sure we have all the necessary data
+            const currentArtifact = openedArtifacts.find(a => a.document_id === documentId) || {};
             
-            const updatedArtifact = await updateArtifactVersion(documentId, artifactData);
+            // Create a clean update object with only the fields we need
+            const updateData = {
+                title: artifactData.title || currentArtifact.title,
+                content: artifactData.content !== undefined ? artifactData.content : currentArtifact.content,
+                art_type: artifactData.art_type || currentArtifact.art_type,
+                dependencies: artifactData.dependencies || currentArtifact.dependencies || []
+            };
             
-            // Update the artifact in the artifacts list without reloading everything
+            // Call the API
+            const updatedArtifact = await updateArtifactVersion(documentId, updateData);
+            
+            // Update all relevant state in one place
+            const newArtifact = {
+                ...updatedArtifact,
+                document_id: documentId // Ensure document_id is preserved
+            };
+            
+            // Update artifacts list
             setArtifacts(currentArtifacts => {
                 if (!currentArtifacts || !currentArtifacts.items) return currentArtifacts;
                 
                 return {
                     ...currentArtifacts,
-                    items: currentArtifacts.items.map(artifact => {
-                        if (artifact.document_id === documentId) {
-                            return updatedArtifact; // Replace with updated artifact
-                        }
-                        return artifact;
-                    })
+                    items: currentArtifacts.items.map(artifact => 
+                        artifact.document_id === documentId ? newArtifact : artifact
+                    )
                 };
             });
             
-            // Also update in opened artifacts list
-            updateOpenedArtifactInList(updatedArtifact);
+            // Update opened artifacts
+            setOpenedArtifacts(current => 
+                current.map(art => art.document_id === documentId ? newArtifact : art)
+            );
             
-            return updatedArtifact;
+            // Update active artifact if this is the active one
+            if (activeArtifactDocumentId === documentId) {
+                setActiveArtifact(newArtifact);
+            }
+            
+            return newArtifact;
         } catch (error) {
             console.error("Error updating artifact:", error);
             showError("Failed to update artifact.");

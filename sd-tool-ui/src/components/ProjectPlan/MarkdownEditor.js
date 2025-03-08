@@ -107,17 +107,26 @@ const MarkdownEditor = ({
     };
 
     const handleSave = async () => {
-        if (onSave) {
-            // Make sure we're using the latest metadata from the active artifact
-            await onSave({
+        if (!onSave) return;
+        
+        try {
+            // Get the current artifact type from the active artifact
+            const artifactType = activeArtifact?.art_type || 'note';
+            
+            // Create a clean update object
+            const updateData = {
                 content: markdownContent,
                 title: noteTitle,
-                // If we have access to the activeArtifact, use its art_type
-                // This ensures changes from the inspector are included
-                art_type: activeArtifact?.art_type || undefined
-            });
+                art_type: artifactType
+            };
+            
+            // Call the parent's save handler
+            await onSave(updateData);
+            setSaved(true);
+        } catch (error) {
+            console.error('Error saving content:', error);
+            showError('Failed to save content');
         }
-        setSaved(true);
     };
 
     return (

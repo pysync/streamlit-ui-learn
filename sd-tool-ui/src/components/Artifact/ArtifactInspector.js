@@ -132,29 +132,19 @@ const ArtifactInspector = ({ artifact }) => {
     setIsLoading(true);
     
     try {
+      // Create a clean update object
       const updatedData = {
         title,
         art_type: artType,
         dependencies
       };
-
-      console.log("updatedData when save: ", updatedData);
       
-      // Try to update the active artifact but don't let it block the save
-      try {
-        updateActiveArtifact(updatedData);
-      } catch (e) {
-        console.warn('Could not update active artifact:', e);
-      }
-      
-      // Continue with the normal save process
       if (artifact.isNew) {
-        // For new artifacts, update the local list while waiting for save
-        const updatedArtifact = {
+        // For new artifacts, just update the local state
+        updateOpenedArtifactInList({
           ...artifact,
           ...updatedData
-        };
-        updateOpenedArtifactInList(updatedArtifact);
+        });
         showMessage('Properties updated. Save in editor to create the artifact.', 'success');
       } else {
         // For existing artifacts, update on the server
