@@ -145,22 +145,32 @@ const WorkingSpaceContent = () => {
     
     // Fix the close artifact handler to properly remove tabs
     const handleCloseArtifact = (documentId, e) => {
-        e?.stopPropagation();
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         
-        // First update our local tab state
+        // First update WorkspaceContext with a short timeout to avoid race conditions
+        // This prevents the auto-creation of new tabs
+        setTimeout(() => {
+            removeOpenedArtifact(documentId);
+        }, 10);
+        
+        // Then update our local tab state
         setOpenTabs(prev => ({
             ...prev,
             artifacts: prev.artifacts.filter(id => id !== documentId)
         }));
         
-        // If closing the active tab, switch to another tab
+        // If closing the active tab, switch to another tab immediately
         if (activeTabId === documentId) {
             const remainingArtifacts = openTabs.artifacts.filter(id => id !== documentId);
             if (remainingArtifacts.length > 0) {
-                // Find the last remaining artifact that actually exists in openedArtifacts
                 const validArtifact = remainingArtifacts
                     .reverse()
-                    .find(id => openedArtifacts.some(art => art.document_id === id));
+                    .find(id => openedArtifacts.some(art => 
+                        art.document_id === id && art.title !== "New Note"
+                    ));
                     
                 if (validArtifact) {
                     setActiveTabId(validArtifact);
@@ -175,9 +185,6 @@ const WorkingSpaceContent = () => {
                 setActiveTabId('guide');
             }
         }
-        
-        // Then update WorkspaceContext - make sure we pass the event to prevent default behavior
-        removeOpenedArtifact(documentId);
     };
 
     // Fix Bug 2: Consistent artifact opening
@@ -418,10 +425,11 @@ const WorkingSpaceContent = () => {
                                     )}
                                     {openedArtifacts
                                         .filter(artifact => {
-                                            // Only show real artifacts with IDs that are in our open tabs list
+                                            // Much stricter filtering to prevent "New Note" ghost tabs
                                             return artifact && 
                                                    artifact.document_id && 
-                                                   openTabs.artifacts.includes(artifact.document_id);
+                                                   openTabs.artifacts.includes(artifact.document_id) &&
+                                                   artifact.title !== "New Note"; // Specifically filter out "New Note" tabs
                                         })
                                         .map((artifact) => (
                                             <Tab
@@ -431,7 +439,11 @@ const WorkingSpaceContent = () => {
                                                         {artifact.title || 'Untitled'}
                                                         <IconButton
                                                             size="small"
-                                                            onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
+                                                            onClick={(e) => {
+                                                                e.preventDefault(); // Add this
+                                                                e.stopPropagation(); // Make sure this works
+                                                                handleCloseArtifact(artifact.document_id, e);
+                                                            }}
                                                             sx={{ ml: 1, p: 0.5 }}
                                                         >
                                                             <CloseIcon fontSize="small" />
