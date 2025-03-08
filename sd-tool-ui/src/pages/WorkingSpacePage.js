@@ -157,15 +157,26 @@ const WorkingSpaceContent = () => {
         if (activeTabId === documentId) {
             const remainingArtifacts = openTabs.artifacts.filter(id => id !== documentId);
             if (remainingArtifacts.length > 0) {
-                setActiveTabId(remainingArtifacts[remainingArtifacts.length - 1]);
-            } else if (openTabs.guide) {
-                setActiveTabId('guide');
+                // Find the last remaining artifact that actually exists in openedArtifacts
+                const validArtifact = remainingArtifacts
+                    .reverse()
+                    .find(id => openedArtifacts.some(art => art.document_id === id));
+                    
+                if (validArtifact) {
+                    setActiveTabId(validArtifact);
+                } else if (openTabs.typeList) {
+                    setActiveTabId('typeList');
+                } else if (openTabs.guide) {
+                    setActiveTabId('guide');
+                }
             } else if (openTabs.typeList) {
                 setActiveTabId('typeList');
+            } else if (openTabs.guide) {
+                setActiveTabId('guide');
             }
         }
         
-        // Then update WorkspaceContext
+        // Then update WorkspaceContext - make sure we pass the event to prevent default behavior
         removeOpenedArtifact(documentId);
     };
 
@@ -406,7 +417,12 @@ const WorkingSpaceContent = () => {
                                         />
                                     )}
                                     {openedArtifacts
-                                        .filter(artifact => openTabs.artifacts.includes(artifact.document_id))
+                                        .filter(artifact => {
+                                            // Only show real artifacts with IDs that are in our open tabs list
+                                            return artifact && 
+                                                   artifact.document_id && 
+                                                   openTabs.artifacts.includes(artifact.document_id);
+                                        })
                                         .map((artifact) => (
                                             <Tab
                                                 key={artifact.document_id}
