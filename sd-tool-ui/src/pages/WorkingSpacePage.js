@@ -1,5 +1,5 @@
 // src/pages/WorkingSpacePage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Box,
@@ -29,6 +29,7 @@ import { WorkspaceProvider, useWorkspace } from '../contexts/WorkspaceContext';
 import ProjectPlanTab from '../components/ProjectPlan/ProjectPlanTab';
 import CreateArtifactDialog from '../components/Artifact/CreateArtifactDialog';
 import WorkspaceSidebar from '../components/Workspace/WorkspaceSidebar';
+import WorkspacePhasesSidebar from '../components/Workspace/WorkspacePhasesSidebar';
 import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS } from '../constants/sdlcConstants';
 import { useEditor } from '../contexts/EditorContext';
 import TableRowsIcon from '@mui/icons-material/TableRows';
@@ -36,6 +37,9 @@ import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
 import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import ArtifactTypesSettingsDialog from '../components/Settings/ArtifactTypesSettingsDialog';
 
 const drawerWidth = 240;
 
@@ -73,6 +77,8 @@ const WorkingSpaceContent = () => {
     const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
+    const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+    const tabsRef = useRef(null);
     
     const theme = useTheme();
     const { triggerSave, triggerFullscreen } = useEditor();
@@ -87,10 +93,8 @@ const WorkingSpaceContent = () => {
         return artifactPhase === currentPhase;
     });
 
-    const handlePhaseChange = (event, newPhase) => {
-        if (newPhase !== null) {
-            setCurrentPhase(newPhase);
-        }
+    const handlePhaseChange = (newPhase) => {
+        setCurrentPhase(newPhase);
     };
 
     const handleArtifactSelect = (event, newValue) => {
@@ -159,9 +163,15 @@ const WorkingSpaceContent = () => {
         return <ProjectPlanTab layoutMode={layoutMode} />;
     };
 
+    const handleScrollTabs = (direction) => {
+        if (tabsRef.current) {
+            const scrollAmount = 200;
+            tabsRef.current.scrollLeft += direction === 'left' ? -scrollAmount : scrollAmount;
+        }
+    };
+
     return (
         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-            {/* Sidebar */}
             <WorkspaceSidebar />
             
             {/* Main Content */}
@@ -177,190 +187,180 @@ const WorkingSpaceContent = () => {
                     overflow: 'hidden'
                 }}
             >
-                {/* Unified Top AppBar */}
+                {/* Thin AppBar */}
                 <AppBar 
                     position="static" 
                     color="default" 
                     elevation={1}
-                    sx={{ zIndex: theme.zIndex.drawer + 1 }}
+                    sx={{ 
+                        height: 48,
+                        minHeight: 48,
+                        '& .MuiToolbar-root': {
+                            minHeight: 48,
+                            height: 48,
+                            px: 1
+                        }
+                    }}
                 >
                     <Toolbar sx={{ justifyContent: 'space-between' }}>
-                        {/* Workspace Title */}
-                        <Typography variant="h6" noWrap component="div">
-                            {currentWorkspace ? currentWorkspace.title : 'Loading Workspace...'}
-                        </Typography>
-                        
-                        {/* SDLC Phase Selector */}
-                        <ToggleButtonGroup
-                            value={currentPhase}
-                            exclusive
-                            onChange={handlePhaseChange}
-                            aria-label="sdlc phase"
-                            size="small"
-                            sx={{ mx: 2 }}
-                        >
-                            <ToggleButton value={SDLC_PHASES.PLANNING} aria-label="planning">
-                                {PHASE_LABELS[SDLC_PHASES.PLANNING]}
-                            </ToggleButton>
-                            <ToggleButton value={SDLC_PHASES.REQUIREMENTS} aria-label="requirements">
-                                {PHASE_LABELS[SDLC_PHASES.REQUIREMENTS]}
-                            </ToggleButton>
-                            <ToggleButton value={SDLC_PHASES.DESIGN} aria-label="design">
-                                {PHASE_LABELS[SDLC_PHASES.DESIGN]}
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-                        
-                        {/* Context-Sensitive Actions */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {activeArtifact && (
-                                <>
-                                    <Tooltip title="Save">
-                                        <IconButton 
-                                            color="inherit" 
-                                            size="small" 
-                                            sx={{ mr: 1 }}
-                                            onClick={triggerSave}
-                                        >
-                                            <SaveIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title={isFullScreen ? "Exit Fullscreen" : "Fullscreen"}>
-                                        <IconButton 
-                                            color="inherit" 
-                                            size="small" 
-                                            sx={{ mr: 1 }}
-                                            onClick={triggerFullscreen}
-                                        >
-                                            <FullscreenIcon />
-                                        </IconButton>
-                                    </Tooltip>
-                                </>
-                            )}
-                            <Tooltip title="Create New Artifact">
-                                <IconButton 
-                                    color="primary" 
-                                    onClick={handleCreateArtifactDialogOpen}
-                                    size="small"
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </Tooltip>
+                        {/* Scrollable Tabs with Arrows */}
+                        <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center',
+                            flex: 1,
+                            overflow: 'hidden'
+                        }}>
                             <IconButton 
-                                color="inherit" 
-                                onClick={handleContextMenu}
+                                size="small" 
+                                onClick={() => handleScrollTabs('left')}
+                                sx={{ p: 0.5 }}
+                            >
+                                <KeyboardArrowLeftIcon />
+                            </IconButton>
+                            
+                            <Box
+                                ref={tabsRef}
+                                sx={{
+                                    overflow: 'hidden',
+                                    flex: 1,
+                                    whiteSpace: 'nowrap',
+                                    scrollBehavior: 'smooth'
+                                }}
+                            >
+                                <Tabs
+                                    value={activeArtifactDocumentId || false}
+                                    onChange={handleArtifactSelect}
+                                    variant="scrollable"
+                                    scrollButtons={false}
+                                    sx={{ 
+                                        minHeight: 48,
+                                        '& .MuiTab-root': {
+                                            minHeight: 48,
+                                            py: 0
+                                        }
+                                    }}
+                                >
+                                    {filteredArtifacts.map((artifact) => (
+                                        <Tab
+                                            key={artifact.document_id}
+                                            label={
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    {artifact.title || 'Untitled'}
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
+                                                        sx={{ ml: 1, p: 0.5 }}
+                                                    >
+                                                        <CloseIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Box>
+                                            }
+                                            value={artifact.document_id}
+                                        />
+                                    ))}
+                                </Tabs>
+                            </Box>
+                            
+                            <IconButton 
+                                size="small" 
+                                onClick={() => handleScrollTabs('right')}
+                                sx={{ p: 0.5 }}
+                            >
+                                <KeyboardArrowRightIcon />
+                            </IconButton>
+                        </Box>
+
+                        {/* Right-side Controls */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                            {/* Layout Controls */}
+                            <ButtonGroup size="small" variant="outlined">
+                                <Tooltip title="Notes Only">
+                                    <IconButton 
+                                        onClick={() => setLayoutMode('single')}
+                                        color={layoutMode === 'single' ? "primary" : "default"}
+                                        size="small"
+                                    >
+                                        <TableRowsIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Split View">
+                                    <IconButton 
+                                        onClick={() => setLayoutMode('vertical')}
+                                        color={layoutMode === 'vertical' ? "primary" : "default"}
+                                        size="small"
+                                    >
+                                        <VerticalSplitIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Horizontal Split">
+                                    <IconButton 
+                                        onClick={() => setLayoutMode('horizontal')}
+                                        color={layoutMode === 'horizontal' ? "primary" : "default"}
+                                        size="small"
+                                    >
+                                        <HorizontalSplitIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Wireframe Only">
+                                    <IconButton 
+                                        onClick={() => setLayoutMode('wireframe')}
+                                        color={layoutMode === 'wireframe' ? "primary" : "default"}
+                                        size="small"
+                                    >
+                                        <ViewQuiltIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </ButtonGroup>
+
+                            <IconButton 
                                 size="small"
+                                onClick={handleContextMenu}
+                                sx={{ ml: 1 }}
                             >
                                 <MoreVertIcon />
                             </IconButton>
+                            
                             <Menu
                                 anchorEl={contextMenuAnchorEl}
                                 open={Boolean(contextMenuAnchorEl)}
                                 onClose={handleContextMenuClose}
                             >
+                                <MenuItem onClick={() => {
+                                    setIsSettingsDialogOpen(true);
+                                    handleContextMenuClose();
+                                }}>
+                                    Artifact Types Settings
+                                </MenuItem>
                                 <MenuItem onClick={handleContextMenuClose}>Workspace Settings</MenuItem>
-                                <MenuItem onClick={handleContextMenuClose}>Export All Artifacts</MenuItem>
                                 <Divider />
                                 <MenuItem onClick={handleContextMenuClose}>Help</MenuItem>
                             </Menu>
                         </Box>
                     </Toolbar>
                 </AppBar>
-                
-                {/* Artifact Sub-Navigation Bar */}
-                <Box sx={{ 
-                    borderBottom: 1, 
-                    borderColor: 'divider',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <Tabs 
-                        value={activeArtifactDocumentId || false} 
-                        onChange={handleArtifactSelect}
-                        variant="scrollable"
-                        scrollButtons="auto"
-                    >
-                        {filteredArtifacts.map((artifact) => (
-                            <Tab
-                                key={artifact.document_id}
-                                label={
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        {artifact.title || 'Untitled'}
-                                        <IconButton
-                                            size="small"
-                                            onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
-                                            sx={{ ml: 1 }}
-                                        >
-                                            <CloseIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                }
-                                value={artifact.document_id}
-                            />
-                        ))}
-                    </Tabs>
 
-                    {/* Layout Controls */}
-                    <ButtonGroup size="small" variant="outlined" sx={{ ml: 2 }}>
-                        <Tooltip title="Notes Only">
-                            <IconButton 
-                                onClick={() => setLayoutMode('single')}
-                                color={layoutMode === 'single' ? "primary" : "default"}
-                            >
-                                <TableRowsIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Split View">
-                            <IconButton 
-                                onClick={() => setLayoutMode('vertical')}
-                                color={layoutMode === 'vertical' ? "primary" : "default"}
-                            >
-                                <VerticalSplitIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Horizontal Split">
-                            <IconButton 
-                                onClick={() => setLayoutMode('horizontal')}
-                                color={layoutMode === 'horizontal' ? "primary" : "default"}
-                            >
-                                <HorizontalSplitIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Wireframe Only">
-                            <IconButton 
-                                onClick={() => setLayoutMode('wireframe')}
-                                color={layoutMode === 'wireframe' ? "primary" : "default"}
-                            >
-                                <ViewQuiltIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </ButtonGroup>
-                </Box>
-                
                 {/* Main Content Area */}
-                <Box sx={{ 
-                    flexGrow: 1, 
-                    overflow: 'auto',
-                    p: 2,
-                    ...(isFullScreen && {
-                        position: 'fixed',
-                        top: 0,
-                        left: drawerWidth,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: theme.zIndex.drawer + 2,
-                        bgcolor: 'background.paper',
-                        p: 3
-                    })
-                }}>
+                <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
                     {renderContent()}
                 </Box>
             </Box>
+            
+            {/* Add the new phases sidebar */}
+            <WorkspacePhasesSidebar 
+                currentPhase={currentPhase}
+                onPhaseChange={handlePhaseChange}
+            />
             
             {/* Create Artifact Dialog */}
             <CreateArtifactDialog
                 open={isCreateArtifactDialogOpen}
                 onClose={handleCreateArtifactDialogClose}
+            />
+
+            {/* Settings Dialog */}
+            <ArtifactTypesSettingsDialog
+                open={isSettingsDialogOpen}
+                onClose={() => setIsSettingsDialogOpen(false)}
             />
         </Box>
     );

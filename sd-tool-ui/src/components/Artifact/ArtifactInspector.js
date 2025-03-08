@@ -108,6 +108,7 @@ const ArtifactInspector = ({ artifact }) => {
       } else {
         const artifactData = {
           title,
+          art_type: artType,
           content: null,
           dependencies
         };
@@ -241,7 +242,7 @@ const ArtifactInspector = ({ artifact }) => {
           <Select
             labelId="art-type-label"
             id="art-type"
-            value={artType}
+            value={artType || ''}
             label="Artifact Type"
             onChange={(e) => setArtType(e.target.value)}
           >
