@@ -23,7 +23,7 @@ import {
 } from '../../constants/sdlcConstants';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 
-const ArtifactGuide = ({ onClose }) => {
+const ArtifactGuide = ({ onOpenTypeList, onOpenArtifact }) => {
   const { 
     artifacts, 
     artifactTypeSettings, 
@@ -50,13 +50,11 @@ const ArtifactGuide = ({ onClose }) => {
     if (!typeData) return;
 
     if (typeData.count === 1) {
-      // If only one artifact, add it to opened tabs and select it
-      const artifact = typeData.artifacts[0];
-      addOpenedArtifact(artifact);
-      selectArtifact(artifact.document_id);
+      // If only one artifact, open it directly
+      onOpenArtifact(typeData.artifacts[0]);
     } else {
       // If multiple artifacts, open the list view
-      setShowArtifactTypeList(type);
+      onOpenTypeList(type);
     }
   };
 

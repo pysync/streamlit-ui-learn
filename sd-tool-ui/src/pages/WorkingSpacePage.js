@@ -75,7 +75,8 @@ const WorkingSpaceContent = () => {
         fetchArtifacts,
         showArtifactTypeList,
         setShowArtifactTypeList,
-        setActiveArtifactDocumentId
+        setActiveArtifactDocumentId,
+        addOpenedArtifact
     } = useWorkspace();
     
     const [currentPhase, setCurrentPhase] = useState(SDLC_PHASES.PLANNING);
@@ -90,100 +91,127 @@ const WorkingSpaceContent = () => {
     const theme = useTheme();
     const { triggerSave, triggerFullscreen } = useEditor();
 
-    // Filter artifacts by the current SDLC phase
-    const filteredArtifacts = openedArtifacts.filter(artifact => {
-        // If no art_type is set (like for new artifacts), default to showing in Planning
-        if (!artifact.art_type) return currentPhase === SDLC_PHASES.PLANNING;
-        
-        // Otherwise, check if the artifact type belongs to the current phase
-        const artifactPhase = ARTIFACT_TYPE_TO_PHASE[artifact.art_type] || SDLC_PHASES.PLANNING;
-        return artifactPhase === currentPhase;
+    // Fix Bug 1: Use a controlled state approach for tabs
+    const [openTabs, setOpenTabs] = useState({
+        guide: true,
+        typeList: null,
+        artifacts: []
     });
+    const [activeTabId, setActiveTabId] = useState('guide');
 
-    const handlePhaseChange = (newPhase) => {
-        setCurrentPhase(newPhase);
-    };
+    // Keep WorkspaceContext in sync with our tab state
+    useEffect(() => {
+        // Only set this when we're activating an artifact tab
+        if (activeTabId !== 'guide' && activeTabId !== 'typeList') {
+            setActiveArtifactDocumentId(activeTabId);
+        } else {
+            // Clear active artifact when not on an artifact tab
+            setActiveArtifactDocumentId(null);
+        }
+    }, [activeTabId, setActiveArtifactDocumentId]);
 
-    const handleArtifactSelect = (event, newValue) => {
-        if (newValue === 'guide') {
-            setShowGuide(true);
-            setActiveArtifactDocumentId(null);
-        } else if (newValue === 'type-list') {
-            // When type-list tab is selected
-            setShowGuide(false);
-            setActiveArtifactDocumentId(null);
-        } else if (newValue !== null) {
-            // When selecting an artifact tab
-            setShowGuide(false);
-            // Don't clear showArtifactTypeList here
-            setActiveArtifactDocumentId(newValue);
+    // Fix Bug 3: Sync sidebar selection with our tab state
+    useEffect(() => {
+        if (activeArtifactDocumentId && activeArtifactDocumentId !== 'guide' && activeArtifactDocumentId !== 'typeList') {
+            // Add to our tabs if not already there
+            setOpenTabs(prev => {
+                if (!prev.artifacts.includes(activeArtifactDocumentId)) {
+                    return {
+                        ...prev,
+                        artifacts: [...prev.artifacts, activeArtifactDocumentId]
+                    };
+                }
+                return prev;
+            });
+            
+            // Make it the active tab
+            setActiveTabId(activeArtifactDocumentId);
+        }
+    }, [activeArtifactDocumentId, openedArtifacts]);
+
+    // Completely separate tab selection from artifact selection
+    const handleTabSelect = (event, tabId) => {
+        if (tabId) {
+            setActiveTabId(tabId);
+            
+            // Keep WorkspaceContext in sync
+            if (tabId !== 'guide' && tabId !== 'typeList') {
+                setActiveArtifactDocumentId(tabId);
+            } else {
+                setActiveArtifactDocumentId(null);
+            }
         }
     };
-
-    const handleCreateArtifactDialogOpen = () => {
-        setIsCreateArtifactDialogOpen(true);
-    };
-
-    const handleCreateArtifactDialogClose = () => {
-        setIsCreateArtifactDialogOpen(false);
-    };
-
-    const handleContextMenu = (event) => {
-        setContextMenuAnchorEl(event.currentTarget);
-    };
-
-    const handleContextMenuClose = () => {
-        setContextMenuAnchorEl(null);
-    };
-
-    const handleCloseArtifact = (documentId, event) => {
-        event.stopPropagation();
+    
+    // Fix the close artifact handler to properly remove tabs
+    const handleCloseArtifact = (documentId, e) => {
+        e?.stopPropagation();
+        
+        // First update our local tab state
+        setOpenTabs(prev => ({
+            ...prev,
+            artifacts: prev.artifacts.filter(id => id !== documentId)
+        }));
+        
+        // If closing the active tab, switch to another tab
+        if (activeTabId === documentId) {
+            const remainingArtifacts = openTabs.artifacts.filter(id => id !== documentId);
+            if (remainingArtifacts.length > 0) {
+                setActiveTabId(remainingArtifacts[remainingArtifacts.length - 1]);
+            } else if (openTabs.guide) {
+                setActiveTabId('guide');
+            } else if (openTabs.typeList) {
+                setActiveTabId('typeList');
+            }
+        }
+        
+        // Then update WorkspaceContext
         removeOpenedArtifact(documentId);
     };
 
-    const toggleFullScreen = () => {
-        setIsFullScreen(!isFullScreen);
-    };
-
-    // Add this function to handle save action
-    const handleSaveArtifact = () => {
-        if (!activeArtifact) return;
+    // Fix Bug 2: Consistent artifact opening
+    const handleOpenArtifact = (artifact) => {
+        // First add to workspace context
+        addOpenedArtifact(artifact);
         
-        // Get the ProjectPlanTab component to handle the save
-        // This is a temporary solution - in a real app, you'd use refs or context
-        const projectPlanTabElement = document.getElementById('project-plan-tab');
-        if (projectPlanTabElement && projectPlanTabElement.__reactProps$) {
-            // Access the component's save function if available
-            const saveFunction = projectPlanTabElement.__reactProps$.onSave;
-            if (typeof saveFunction === 'function') {
-                saveFunction();
+        // Then update our local tab state
+        setOpenTabs(prev => {
+            if (!prev.artifacts.includes(artifact.document_id)) {
+                return {
+                    ...prev,
+                    artifacts: [...prev.artifacts, artifact.document_id]
+                };
             }
-        } else {
-            console.log('Save button clicked, but no handler available');
-        }
+            return prev;
+        });
+        
+        // Finally set as active
+        setActiveTabId(artifact.document_id);
     };
-
-    // Determine which content to show based on the active artifact
+    
+    // Use our internal state for tab values
+    // instead of trying to derive it from WorkspaceContext
     const renderContent = () => {
-        if (showArtifactTypeList) {
-            return <ArtifactTypeList artifactType={showArtifactTypeList} />;
-        }
-
-        if (showGuide && (!activeArtifactDocumentId || activeArtifactDocumentId === 'guide')) {
-            return <ArtifactGuide />;
+        if (activeTabId === 'guide') {
+            return <ArtifactGuide onOpenTypeList={handleOpenTypeList} onOpenArtifact={handleOpenArtifact} />;
         }
         
-        if (!activeArtifact) {
-            return (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <Typography variant="h6" color="text.secondary">
-                        Select an artifact or create a new one
-                    </Typography>
-                </Box>
-            );
+        if (activeTabId === 'typeList' && openTabs.typeList) {
+            return <ArtifactTypeList artifactType={openTabs.typeList} onOpenArtifact={handleOpenArtifact} />;
         }
-
-        return <ProjectPlanTab layoutMode={layoutMode} />;
+        
+        const activeArtifact = openedArtifacts.find(art => art.document_id === activeTabId);
+        if (activeArtifact) {
+            return <ProjectPlanTab layoutMode={layoutMode} />;
+        }
+        
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <Typography variant="h6" color="text.secondary">
+                    Select an artifact or create a new one
+                </Typography>
+            </Box>
+        );
     };
 
     const handleScrollTabs = (direction) => {
@@ -195,10 +223,10 @@ const WorkingSpaceContent = () => {
 
     // Update getTabValue to handle all cases
     const getTabValue = () => {
-        if (activeArtifactDocumentId && openedArtifacts.find(art => art.document_id === activeArtifactDocumentId)) {
-            return activeArtifactDocumentId;
+        if (activeTabId && openedArtifacts.find(art => art.document_id === activeTabId)) {
+            return activeTabId;
         }
-        if (showArtifactTypeList && !activeArtifactDocumentId) {
+        if (showArtifactTypeList && !activeTabId) {
             return 'type-list';
         }
         if (showGuide) {
@@ -214,13 +242,47 @@ const WorkingSpaceContent = () => {
         selectArtifact('guide'); // Use selectArtifact to handle tab activation
     };
 
-    // Update the close button handler for type-list tab
+    // Open artifact type list tab
+    const handleOpenTypeList = (typeValue) => {
+        setOpenTabs(prev => ({ ...prev, typeList: typeValue }));
+        setActiveTabId('typeList');
+        setShowArtifactTypeList(typeValue);
+    };
+
+    // Open guide tab
+    const handleOpenGuide = () => {
+        setOpenTabs(prev => ({ ...prev, guide: true }));
+        setActiveTabId('guide');
+    };
+
+    // Close guide tab
+    const handleCloseGuide = (e) => {
+        e?.stopPropagation();
+        setOpenTabs(prev => ({ ...prev, guide: false }));
+        
+        // Activate another tab if guide was active
+        if (activeTabId === 'guide') {
+            if (openTabs.typeList) {
+                setActiveTabId('typeList');
+            } else if (openTabs.artifacts.length > 0) {
+                setActiveTabId(openTabs.artifacts[openTabs.artifacts.length - 1]);
+            }
+        }
+    };
+
+    // Close type list tab
     const handleCloseTypeList = (e) => {
-        e.stopPropagation();
+        e?.stopPropagation();
+        setOpenTabs(prev => ({ ...prev, typeList: null }));
         setShowArtifactTypeList(null);
-        // If type-list tab is active, select the last opened artifact
-        if (getTabValue() === 'type-list' && openedArtifacts.length > 0) {
-            selectArtifact(openedArtifacts[openedArtifacts.length - 1].document_id);
+        
+        // Activate another tab if type list was active
+        if (activeTabId === 'typeList') {
+            if (openTabs.guide) {
+                setActiveTabId('guide');
+            } else if (openTabs.artifacts.length > 0) {
+                setActiveTabId(openTabs.artifacts[openTabs.artifacts.length - 1]);
+            }
         }
     };
 
@@ -283,7 +345,7 @@ const WorkingSpaceContent = () => {
                             >
                                 <Tabs
                                     value={getTabValue()}
-                                    onChange={handleArtifactSelect}
+                                    onChange={handleTabSelect}
                                     variant="scrollable"
                                     scrollButtons={false}
                                     sx={{ 
@@ -294,7 +356,7 @@ const WorkingSpaceContent = () => {
                                         }
                                     }}
                                 >
-                                    {showGuide && (
+                                    {openTabs.guide && (
                                         <Tab
                                             label={
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -302,10 +364,7 @@ const WorkingSpaceContent = () => {
                                                     Guide
                                                     <IconButton
                                                         size="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowGuide(false);
-                                                        }}
+                                                        onClick={handleCloseGuide}
                                                         sx={{ ml: 1, p: 0.5 }}
                                                     >
                                                         <CloseIcon fontSize="small" />
@@ -315,13 +374,13 @@ const WorkingSpaceContent = () => {
                                             value="guide"
                                         />
                                     )}
-                                    {showArtifactTypeList && (
+                                    {openTabs.typeList && (
                                         <Tab
                                             label={
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    {getArtifactIcon(showArtifactTypeList)}
+                                                    {getArtifactIcon(openTabs.typeList)}
                                                     <Box sx={{ ml: 1 }}>
-                                                        {getArtifactTypeLabel(showArtifactTypeList)} List
+                                                        {getArtifactTypeLabel(openTabs.typeList)} List
                                                     </Box>
                                                     <IconButton
                                                         size="small"
@@ -332,27 +391,29 @@ const WorkingSpaceContent = () => {
                                                     </IconButton>
                                                 </Box>
                                             }
-                                            value="type-list"
+                                            value="typeList"
                                         />
                                     )}
-                                    {openedArtifacts.map((artifact) => (
-                                        <Tab
-                                            key={artifact.document_id}
-                                            label={
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    {artifact.title || 'Untitled'}
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
-                                                        sx={{ ml: 1, p: 0.5 }}
-                                                    >
-                                                        <CloseIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
-                                            }
-                                            value={artifact.document_id}
-                                        />
-                                    ))}
+                                    {openedArtifacts
+                                        .filter(artifact => openTabs.artifacts.includes(artifact.document_id))
+                                        .map((artifact) => (
+                                            <Tab
+                                                key={artifact.document_id}
+                                                label={
+                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                        {artifact.title || 'Untitled'}
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={(e) => handleCloseArtifact(artifact.document_id, e)}
+                                                            sx={{ ml: 1, p: 0.5 }}
+                                                        >
+                                                            <CloseIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Box>
+                                                }
+                                                value={artifact.document_id}
+                                            />
+                                        ))}
                                 </Tabs>
                             </Box>
                             
@@ -410,7 +471,7 @@ const WorkingSpaceContent = () => {
                             <Tooltip title="Show Guide">
                                 <IconButton 
                                     size="small" 
-                                    onClick={handleShowGuide}
+                                    onClick={handleOpenGuide}
                                     sx={{ mr: 1 }}
                                 >
                                     <InfoIcon />
@@ -419,7 +480,7 @@ const WorkingSpaceContent = () => {
 
                             <IconButton 
                                 size="small"
-                                onClick={handleContextMenu}
+                                onClick={() => setContextMenuAnchorEl(true)}
                                 sx={{ ml: 1 }}
                             >
                                 <MoreVertIcon />
@@ -428,17 +489,17 @@ const WorkingSpaceContent = () => {
                             <Menu
                                 anchorEl={contextMenuAnchorEl}
                                 open={Boolean(contextMenuAnchorEl)}
-                                onClose={handleContextMenuClose}
+                                onClose={() => setContextMenuAnchorEl(null)}
                             >
                                 <MenuItem onClick={() => {
                                     setIsSettingsDialogOpen(true);
-                                    handleContextMenuClose();
+                                    setContextMenuAnchorEl(null);
                                 }}>
                                     Artifact Types Settings
                                 </MenuItem>
-                                <MenuItem onClick={handleContextMenuClose}>Workspace Settings</MenuItem>
+                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>Workspace Settings</MenuItem>
                                 <Divider />
-                                <MenuItem onClick={handleContextMenuClose}>Help</MenuItem>
+                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>Help</MenuItem>
                             </Menu>
                         </Box>
                     </Toolbar>
@@ -453,13 +514,13 @@ const WorkingSpaceContent = () => {
             {/* Add the new phases sidebar */}
             <WorkspacePhasesSidebar 
                 currentPhase={currentPhase}
-                onPhaseChange={handlePhaseChange}
+                onPhaseChange={setCurrentPhase}
             />
             
             {/* Create Artifact Dialog */}
             <CreateArtifactDialog
                 open={isCreateArtifactDialogOpen}
-                onClose={handleCreateArtifactDialogClose}
+                onClose={() => setIsCreateArtifactDialogOpen(false)}
             />
 
             {/* Settings Dialog */}

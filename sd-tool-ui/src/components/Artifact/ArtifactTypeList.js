@@ -21,21 +21,15 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 
-const ArtifactTypeList = ({ artifactType }) => {
-    const { 
-        artifacts, 
-        selectArtifact, 
-        addOpenedArtifact,
-        setActiveArtifactDocumentId
-    } = useWorkspace();
+const ArtifactTypeList = ({ artifactType, onOpenArtifact }) => {
+    const { artifacts } = useWorkspace();
 
     const typeArtifacts = React.useMemo(() => {
         return artifacts?.items?.filter(art => art.art_type === artifactType) || [];
     }, [artifacts, artifactType]);
 
     const handleArtifactClick = (artifact) => {
-        addOpenedArtifact(artifact);
-        setActiveArtifactDocumentId(artifact.document_id);
+        onOpenArtifact(artifact);
     };
 
     const typeLabel = getArtifactTypeLabel(artifactType);
