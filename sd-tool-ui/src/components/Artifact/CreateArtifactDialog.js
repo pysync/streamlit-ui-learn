@@ -52,7 +52,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
             await execCreateArtifact({
                 title: title,
                 art_type: artType,
-                content: '',
+                content: textContent,
                 dependencies: [],
                 document_id: generateDocumentId()
             });

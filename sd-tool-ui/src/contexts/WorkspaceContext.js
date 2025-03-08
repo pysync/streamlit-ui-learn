@@ -122,10 +122,9 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 };
             }
             
-            const newArtifact = await createArtifact({
+            const newArtifact = await createArtifact(currentWorkspace.id, {
                 ...artifactData,
                 document_id: documentId,
-                workspace_id: currentWorkspace.id,
                 content: artifactData.content || '',
                 dependencies: artifactData.dependencies || []
             });
@@ -137,15 +136,19 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 }
                 return {
                     ...currentArtifacts,
-                    items: [...currentArtifacts.items, newArtifact]
+                    items: [newArtifact, ...currentArtifacts.items] // add to top
                 };
             });
 
             // Update opened artifacts if this was a temp one
             if (artifactData.isNew) {
+                // add to top and remove flag isNew
                 setOpenedArtifacts(current => 
                     current.map(art => 
-                        art.document_id === artifactData.document_id ? newArtifact : art
+                        art.document_id === artifactData.document_id ? {
+                            ...newArtifact,
+                            isNew: false
+                        } : art
                     )
                 );
             } else {
@@ -169,6 +172,8 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const execUpdateArtifact = async (documentId, artifactData) => {
         showLoading();
         try {
+            console.log("execUpdateArtifact: artifactData = ", artifactData);
+            
             const updatedArtifact = await updateArtifactVersion(documentId, artifactData);
             
             // Update the artifact in the artifacts list without reloading everything
@@ -265,9 +270,17 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         setActiveArtifactDocumentId(null);
     }, []);
 
-    const selectArtifact = useCallback((documentId) => { // Renamed for clarity
+    const selectArtifact = (documentId) => {
         setActiveArtifactDocumentId(documentId);
-    }, []);
+        
+        // Also update the activeArtifact object
+        if (documentId) {
+            const found = openedArtifacts.find(a => a.document_id === documentId);
+            if (found) {
+                setActiveArtifact(found);
+            }
+        }
+    };
 
     const addNewEmptyArtifactToOpenedList = useCallback(() => {
         const tempDocumentId = uuidv4(); // Generate a temporary document_id

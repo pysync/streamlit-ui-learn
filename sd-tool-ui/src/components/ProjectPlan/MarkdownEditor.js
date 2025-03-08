@@ -45,6 +45,7 @@ const MarkdownEditor = ({
     const { showLoading, hideLoading } = useLoading();
     const { showError } = useMessage();
     const [saved, setSaved] = useState(false);
+    const { activeArtifact } = useWorkspace();
 
     // Fetch context actions when component mounts
     useEffect(() => {
@@ -108,10 +109,12 @@ const MarkdownEditor = ({
     const handleSave = async () => {
         if (onSave) {
             // Make sure we're using the latest metadata from the active artifact
-            // This ensures changes from the inspector are included
             await onSave({
                 content: markdownContent,
-                title: noteTitle
+                title: noteTitle,
+                // If we have access to the activeArtifact, use its art_type
+                // This ensures changes from the inspector are included
+                art_type: activeArtifact?.art_type || undefined
             });
         }
         setSaved(true);

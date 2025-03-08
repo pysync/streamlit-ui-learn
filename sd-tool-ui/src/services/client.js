@@ -140,14 +140,20 @@ export async function getArtifactVersions(document_id) {
  * Create a new artifact (initial version) in a workspace.
  */
 export async function createArtifact(workspace_id, artifactData) {
-  // artifact data should have:  document_id, title, content, art_type
-  console.log("artifactData: ", artifactData);  
-  const { document_id, title, content, art_type, dependencies } = artifactData
-  const url = `${BASE_URL}/artifacts/`;
+  const { document_id, title, content, art_type, dependencies = null } = artifactData;
+  
+  const url = `${BASE_URL}/artifacts`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ workspace_id, document_id, title, content, art_type, dependencies }),
+    body: JSON.stringify({
+      document_id,
+      workspace_id,
+      title,
+      content,
+      art_type,
+      dependencies
+    }),
   });
   return checkResponse(response);
 }
@@ -156,12 +162,12 @@ export async function createArtifact(workspace_id, artifactData) {
  * Update artifact version: archive current and create a new version.
  */
 export async function updateArtifactVersion(document_id, artifactData) {
-  const { title, content, dependencies = null } = artifactData
+  const { title, content, art_type, dependencies = null } = artifactData
   const url = `${BASE_URL}/artifacts/${document_id}/update`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, dependencies }),
+    body: JSON.stringify({ title, content, art_type, dependencies }),
   });
   return checkResponse(response);
 }
@@ -170,13 +176,13 @@ export async function updateArtifactVersion(document_id, artifactData) {
  * Set artifact metadata: Update current version without creating a new version.
  */
 export async function setArtifactMeta(document_id, artifactData) {
-  // artifactData should have: title, content, dependencies (optional)
-  const { title, content, dependencies } = artifactData;
+  // artifactData should have: title, content, art_type, dependencies (optional)
+  const { title, content, art_type, dependencies } = artifactData;
   const url = `${BASE_URL}/artifacts/${document_id}/setmeta`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, dependencies }),
+    body: JSON.stringify({ title, content, art_type, dependencies }),
   });
   return checkResponse(response);
 }

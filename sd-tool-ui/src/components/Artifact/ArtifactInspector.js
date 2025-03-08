@@ -59,6 +59,7 @@ const ArtifactInspector = ({ artifact }) => {
 
   // First, add the missing state and import activeArtifactDocumentId
   const [isLoading, setIsLoading] = useState(false);
+  console.log("current setted: artType = ", artType);
 
   // Load artifact data when component receives a new artifact
   useEffect(() => {
@@ -68,6 +69,8 @@ const ArtifactInspector = ({ artifact }) => {
         artType: artifact.art_type || '',
         dependencies: artifact.dependencies || []
       };
+
+      console.log("received artifact form remote: ", newValues);
       
       setTitle(newValues.title);
       setArtType(newValues.artType);
@@ -134,6 +137,8 @@ const ArtifactInspector = ({ artifact }) => {
         art_type: artType,
         dependencies
       };
+
+      console.log("updatedData when save: ", updatedData);
       
       // Try to update the active artifact but don't let it block the save
       try {

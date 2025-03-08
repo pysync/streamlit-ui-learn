@@ -74,7 +74,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                 setIsWireframePaneVisible(false);
             }
         } else {
-            handleCreateNewNote();
+            // handleCreateNewNote();
         }
     }, [activeArtifact]);
 
@@ -228,6 +228,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                                         onTitleChange={handleNoteTitleChange}
                                         onSave={handleSaveNote}
                                         artifactId={activeArtifact?.document_id}
+                                        activeArtifact={activeArtifact}
                                     />
                                 </Paper>
                             </Box>
@@ -291,6 +292,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                                         onTitleChange={handleNoteTitleChange}
                                         onSave={handleSaveNote}
                                         artifactId={activeArtifact?.document_id}
+                                        activeArtifact={activeArtifact}
                                     />
                                 </Paper>
                             </Box>
