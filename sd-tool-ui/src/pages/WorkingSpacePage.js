@@ -181,6 +181,17 @@ const WorkingSpaceContent = () => {
         }
     };
 
+    // Add this function to check if a tab exists
+    const getTabValue = () => {
+        if (showArtifactTypeList) {
+            return 'type-list';
+        }
+        if (showGuide && (!activeArtifactDocumentId || !openedArtifacts.find(art => art.document_id === activeArtifactDocumentId))) {
+            return 'guide';
+        }
+        return activeArtifactDocumentId || false;
+    };
+
     return (
         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <WorkspaceSidebar />
@@ -239,7 +250,7 @@ const WorkingSpaceContent = () => {
                                 }}
                             >
                                 <Tabs
-                                    value={activeArtifactDocumentId || (showGuide ? 'guide' : false)}
+                                    value={getTabValue()}
                                     onChange={handleArtifactSelect}
                                     variant="scrollable"
                                     scrollButtons={false}
@@ -272,7 +283,13 @@ const WorkingSpaceContent = () => {
                                             value="guide"
                                         />
                                     )}
-                                    {filteredArtifacts.map((artifact) => (
+                                    {showArtifactTypeList && (
+                                        <Tab
+                                            label="Type List"
+                                            value="type-list"
+                                        />
+                                    )}
+                                    {openedArtifacts.map((artifact) => (
                                         <Tab
                                             key={artifact.document_id}
                                             label={
