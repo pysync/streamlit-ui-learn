@@ -26,7 +26,7 @@ const ArtifactTypeList = ({ artifactType }) => {
         artifacts, 
         selectArtifact, 
         addOpenedArtifact,
-        setShowArtifactTypeList
+        setActiveArtifactDocumentId
     } = useWorkspace();
 
     const typeArtifacts = React.useMemo(() => {
@@ -35,8 +35,7 @@ const ArtifactTypeList = ({ artifactType }) => {
 
     const handleArtifactClick = (artifact) => {
         addOpenedArtifact(artifact);
-        setShowArtifactTypeList(null);
-        selectArtifact(artifact.document_id);
+        setActiveArtifactDocumentId(artifact.document_id);
     };
 
     const typeLabel = getArtifactTypeLabel(artifactType);

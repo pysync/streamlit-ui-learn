@@ -107,16 +107,16 @@ const WorkingSpaceContent = () => {
     const handleArtifactSelect = (event, newValue) => {
         if (newValue === 'guide') {
             setShowGuide(true);
-            setShowArtifactTypeList(null);
             setActiveArtifactDocumentId(null);
         } else if (newValue === 'type-list') {
             // When type-list tab is selected
             setShowGuide(false);
             setActiveArtifactDocumentId(null);
         } else if (newValue !== null) {
+            // When selecting an artifact tab
             setShowGuide(false);
-            setShowArtifactTypeList(null);
-            selectArtifact(newValue);
+            // Don't clear showArtifactTypeList here
+            setActiveArtifactDocumentId(newValue);
         }
     };
 
@@ -193,15 +193,18 @@ const WorkingSpaceContent = () => {
         }
     };
 
-    // Add this function to check if a tab exists
+    // Update getTabValue to handle all cases
     const getTabValue = () => {
-        if (showArtifactTypeList) {
+        if (activeArtifactDocumentId && openedArtifacts.find(art => art.document_id === activeArtifactDocumentId)) {
+            return activeArtifactDocumentId;
+        }
+        if (showArtifactTypeList && !activeArtifactDocumentId) {
             return 'type-list';
         }
-        if (showGuide && (!activeArtifactDocumentId || !openedArtifacts.find(art => art.document_id === activeArtifactDocumentId))) {
+        if (showGuide) {
             return 'guide';
         }
-        return activeArtifactDocumentId || false;
+        return false;
     };
 
     // Add this function to handle showing guide
@@ -209,6 +212,16 @@ const WorkingSpaceContent = () => {
         setShowGuide(true);
         setShowArtifactTypeList(null);
         selectArtifact('guide'); // Use selectArtifact to handle tab activation
+    };
+
+    // Update the close button handler for type-list tab
+    const handleCloseTypeList = (e) => {
+        e.stopPropagation();
+        setShowArtifactTypeList(null);
+        // If type-list tab is active, select the last opened artifact
+        if (getTabValue() === 'type-list' && openedArtifacts.length > 0) {
+            selectArtifact(openedArtifacts[openedArtifacts.length - 1].document_id);
+        }
     };
 
     return (
@@ -312,10 +325,7 @@ const WorkingSpaceContent = () => {
                                                     </Box>
                                                     <IconButton
                                                         size="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowArtifactTypeList(null);
-                                                        }}
+                                                        onClick={handleCloseTypeList}
                                                         sx={{ ml: 1, p: 0.5 }}
                                                     >
                                                         <CloseIcon fontSize="small" />
