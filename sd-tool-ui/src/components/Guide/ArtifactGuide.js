@@ -29,7 +29,8 @@ const ArtifactGuide = ({ onClose }) => {
     artifactTypeSettings, 
     toggleSticky, 
     selectArtifact,
-    setShowArtifactTypeList
+    setShowArtifactTypeList,
+    addOpenedArtifact
   } = useWorkspace();
 
   // Calculate artifact counts by type
@@ -49,8 +50,10 @@ const ArtifactGuide = ({ onClose }) => {
     if (!typeData) return;
 
     if (typeData.count === 1) {
-      // If only one artifact, open it directly
-      selectArtifact(typeData.artifacts[0].document_id);
+      // If only one artifact, add it to opened tabs and select it
+      const artifact = typeData.artifacts[0];
+      addOpenedArtifact(artifact);
+      selectArtifact(artifact.document_id);
     } else {
       // If multiple artifacts, open the list view
       setShowArtifactTypeList(type);
