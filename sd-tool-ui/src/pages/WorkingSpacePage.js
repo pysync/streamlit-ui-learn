@@ -30,7 +30,7 @@ import ProjectPlanTab from '../components/ProjectPlan/ProjectPlanTab';
 import CreateArtifactDialog from '../components/Artifact/CreateArtifactDialog';
 import WorkspaceSidebar from '../components/Workspace/WorkspaceSidebar';
 import WorkspacePhasesSidebar from '../components/Workspace/WorkspacePhasesSidebar';
-import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS } from '../constants/sdlcConstants';
+import { ARTIFACT_TYPE_TO_PHASE, SDLC_PHASES, PHASE_LABELS, ARTIFACT_TYPES, ARTIFACT_TYPE_LABELS, getArtifactIcon, getArtifactTypeLabel } from '../constants/sdlcConstants';
 import { useEditor } from '../contexts/EditorContext';
 import TableRowsIcon from '@mui/icons-material/TableRows';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
@@ -298,7 +298,14 @@ const WorkingSpaceContent = () => {
                                     )}
                                     {showArtifactTypeList && (
                                         <Tab
-                                            label="Type List"
+                                            label={
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    {getArtifactIcon(showArtifactTypeList)}
+                                                    <Box sx={{ ml: 1 }}>
+                                                        {getArtifactTypeLabel(showArtifactTypeList)} List
+                                                    </Box>
+                                                </Box>
+                                            }
                                             value="type-list"
                                         />
                                     )}

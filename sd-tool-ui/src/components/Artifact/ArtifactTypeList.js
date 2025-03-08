@@ -11,6 +11,7 @@ import {
     Typography,
     IconButton,
     Tooltip,
+    Link,
 } from '@mui/material';
 import {
     getArtifactTypeLabel,
@@ -21,15 +22,18 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 
 const ArtifactTypeList = ({ artifactType }) => {
-    const { artifacts, selectArtifact } = useWorkspace();
+    const { artifacts, selectArtifact, addOpenedArtifact } = useWorkspace();
 
     const typeArtifacts = React.useMemo(() => {
         return artifacts?.items?.filter(art => art.art_type === artifactType) || [];
     }, [artifacts, artifactType]);
 
     const handleArtifactClick = (artifact) => {
+        addOpenedArtifact(artifact);
         selectArtifact(artifact.document_id);
     };
+
+    const typeLabel = getArtifactTypeLabel(artifactType);
 
     return (
         <Box sx={{ height: '100%', overflow: 'auto' }}>
@@ -37,7 +41,7 @@ const ArtifactTypeList = ({ artifactType }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Box sx={{ mr: 2 }}>{getArtifactIcon(artifactType)}</Box>
                     <Typography variant="h5">
-                        {getArtifactTypeLabel(artifactType)}
+                        {typeLabel} List
                     </Typography>
                 </Box>
 
@@ -58,9 +62,21 @@ const ArtifactTypeList = ({ artifactType }) => {
                             {typeArtifacts.map((artifact) => (
                                 <TableRow key={artifact.document_id} hover>
                                     <TableCell>
-                                        <Typography variant="body2">
+                                        <Link
+                                            component="button"
+                                            variant="body2"
+                                            onClick={() => handleArtifactClick(artifact)}
+                                            sx={{
+                                                textAlign: 'left',
+                                                textDecoration: 'none',
+                                                '&:hover': {
+                                                    textDecoration: 'underline',
+                                                    cursor: 'pointer'
+                                                }
+                                            }}
+                                        >
                                             {artifact.title || 'Untitled'}
-                                        </Typography>
+                                        </Link>
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body2" color="text.secondary">
@@ -68,10 +84,15 @@ const ArtifactTypeList = ({ artifactType }) => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Tooltip title="Open">
+                                        <Tooltip title="Open in New Tab">
                                             <IconButton
                                                 size="small"
                                                 onClick={() => handleArtifactClick(artifact)}
+                                                sx={{
+                                                    '&:hover': {
+                                                        color: 'primary.main'
+                                                    }
+                                                }}
                                             >
                                                 <EditIcon fontSize="small" />
                                             </IconButton>
