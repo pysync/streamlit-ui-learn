@@ -242,11 +242,22 @@ const WorkingSpaceContent = () => {
         selectArtifact('guide'); // Use selectArtifact to handle tab activation
     };
 
-    // Open artifact type list tab
+    // Fix the handleOpenTypeList function
     const handleOpenTypeList = (typeValue) => {
+        // Update our tab state
         setOpenTabs(prev => ({ ...prev, typeList: typeValue }));
+        
+        // Set as active tab
         setActiveTabId('typeList');
+        
+        // Update the workspace context
         setShowArtifactTypeList(typeValue);
+        
+        // Ensure we're not on the guide tab
+        setShowGuide(false);
+        
+        // Clear any active artifact
+        setActiveArtifactDocumentId(null);
     };
 
     // Open guide tab
@@ -344,7 +355,7 @@ const WorkingSpaceContent = () => {
                                 }}
                             >
                                 <Tabs
-                                    value={getTabValue()}
+                                    value={activeTabId}
                                     onChange={handleTabSelect}
                                     variant="scrollable"
                                     scrollButtons={false}
