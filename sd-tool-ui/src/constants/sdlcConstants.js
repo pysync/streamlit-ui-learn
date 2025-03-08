@@ -221,4 +221,31 @@ export const ARTIFACT_TYPE_OPTIONS = [
   { value: ARTIFACT_TYPES.TEST_CASES, label: ARTIFACT_TYPE_LABELS[ARTIFACT_TYPES.TEST_CASES] },
   { value: ARTIFACT_TYPES.TEST_RESULTS, label: ARTIFACT_TYPE_LABELS[ARTIFACT_TYPES.TEST_RESULTS] },
   { value: ARTIFACT_TYPES.DEFECT_LOGS, label: ARTIFACT_TYPE_LABELS[ARTIFACT_TYPES.DEFECT_LOGS] }
-]; 
+];
+
+// Add descriptions for artifact types
+export const ARTIFACT_TYPE_DESCRIPTIONS = {
+  [ARTIFACT_TYPES.BRAINSTORMING_NOTE]: 'Initial ideas, concepts, and brainstorming sessions for the project',
+  [ARTIFACT_TYPES.PROJECT_CHARTER]: 'Formal document defining project scope, objectives, and participants',
+  [ARTIFACT_TYPES.ROADMAP]: 'High-level timeline and milestones for project delivery',
+  [ARTIFACT_TYPES.RISK_ANALYSIS]: 'Assessment of potential risks and mitigation strategies',
+
+  [ARTIFACT_TYPES.SRS_DOCUMENT]: 'Comprehensive software requirements specification document',
+  [ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS]: 'Detailed functional requirements and user stories',
+  [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS]: 'Performance, security, and other non-functional requirements',
+  [ARTIFACT_TYPES.REQUIREMENTS_TRACE_MATRIX]: 'Matrix mapping requirements to design and test cases',
+  [ARTIFACT_TYPES.UAT_DOCUMENTS]: 'User acceptance testing criteria and scenarios',
+
+  [ARTIFACT_TYPES.BASIC_DESIGN]: 'High-level system architecture and design decisions',
+  [ARTIFACT_TYPES.WIREFRAME]: 'UI/UX wireframes and mockups',
+  [ARTIFACT_TYPES.SCREEN_MAP]: 'Navigation flow and screen relationships',
+  [ARTIFACT_TYPES.SYSTEM_DIAGRAM]: 'System architecture and component diagrams',
+  [ARTIFACT_TYPES.DATA_DESIGN]: 'Database schema and data flow designs',
+  [ARTIFACT_TYPES.API_SPEC]: 'API specifications and integration details',
+  [ARTIFACT_TYPES.INFRA_DOCS]: 'Infrastructure setup and deployment documentation',
+
+  [ARTIFACT_TYPES.TEST_PLAN]: 'Overall testing strategy and approach',
+  [ARTIFACT_TYPES.TEST_CASES]: 'Detailed test cases and scenarios',
+  [ARTIFACT_TYPES.TEST_RESULTS]: 'Test execution results and reports',
+  [ARTIFACT_TYPES.DEFECT_LOGS]: 'Bug tracking and resolution documentation'
+}; 

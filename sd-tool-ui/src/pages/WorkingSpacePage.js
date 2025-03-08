@@ -40,6 +40,8 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import ArtifactTypesSettingsDialog from '../components/Settings/ArtifactTypesSettingsDialog';
+import InfoIcon from '@mui/icons-material/Info';
+import ArtifactGuide from '../components/Guide/ArtifactGuide';
 
 const drawerWidth = 240;
 
@@ -78,6 +80,7 @@ const WorkingSpaceContent = () => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
     const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+    const [showGuide, setShowGuide] = useState(true);
     const tabsRef = useRef(null);
     
     const theme = useTheme();
@@ -148,6 +151,10 @@ const WorkingSpaceContent = () => {
 
     // Determine which content to show based on the active artifact
     const renderContent = () => {
+        if (showGuide && (!activeArtifactDocumentId || activeArtifactDocumentId === 'guide')) {
+            return <ArtifactGuide />;
+        }
+        
         if (!activeArtifact) {
             return (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -158,8 +165,6 @@ const WorkingSpaceContent = () => {
             );
         }
 
-        // For now, we'll just show the ProjectPlanTab for all artifacts
-        // In a real implementation, you'd switch based on artifact type
         return <ProjectPlanTab layoutMode={layoutMode} />;
     };
 
@@ -228,7 +233,7 @@ const WorkingSpaceContent = () => {
                                 }}
                             >
                                 <Tabs
-                                    value={activeArtifactDocumentId || false}
+                                    value={activeArtifactDocumentId || (showGuide ? 'guide' : false)}
                                     onChange={handleArtifactSelect}
                                     variant="scrollable"
                                     scrollButtons={false}
@@ -240,6 +245,27 @@ const WorkingSpaceContent = () => {
                                         }
                                     }}
                                 >
+                                    {showGuide && (
+                                        <Tab
+                                            label={
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <InfoIcon sx={{ mr: 1, fontSize: 20 }} />
+                                                    Guide
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setShowGuide(false);
+                                                        }}
+                                                        sx={{ ml: 1, p: 0.5 }}
+                                                    >
+                                                        <CloseIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Box>
+                                            }
+                                            value="guide"
+                                        />
+                                    )}
                                     {filteredArtifacts.map((artifact) => (
                                         <Tab
                                             key={artifact.document_id}
@@ -311,6 +337,16 @@ const WorkingSpaceContent = () => {
                                     </IconButton>
                                 </Tooltip>
                             </ButtonGroup>
+
+                            <Tooltip title="Show Guide">
+                                <IconButton 
+                                    size="small" 
+                                    onClick={() => setShowGuide(true)}
+                                    sx={{ mr: 1 }}
+                                >
+                                    <InfoIcon />
+                                </IconButton>
+                            </Tooltip>
 
                             <IconButton 
                                 size="small"
