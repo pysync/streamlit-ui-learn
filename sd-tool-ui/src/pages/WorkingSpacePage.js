@@ -73,7 +73,9 @@ const WorkingSpaceContent = () => {
         removeOpenedArtifact,
         activeArtifact,
         fetchArtifacts,
-        showArtifactTypeList
+        showArtifactTypeList,
+        setShowArtifactTypeList,
+        setActiveArtifactDocumentId
     } = useWorkspace();
     
     const [currentPhase, setCurrentPhase] = useState(SDLC_PHASES.PLANNING);
@@ -103,7 +105,11 @@ const WorkingSpaceContent = () => {
     };
 
     const handleArtifactSelect = (event, newValue) => {
-        if (newValue !== null) {
+        if (newValue === 'guide') {
+            setShowGuide(true);
+            setShowArtifactTypeList(null);
+            setActiveArtifactDocumentId(null);
+        } else if (newValue !== null) {
             selectArtifact(newValue);
         }
     };
@@ -190,6 +196,13 @@ const WorkingSpaceContent = () => {
             return 'guide';
         }
         return activeArtifactDocumentId || false;
+    };
+
+    // Add this function to handle showing guide
+    const handleShowGuide = () => {
+        setShowGuide(true);
+        setShowArtifactTypeList(null);
+        selectArtifact('guide'); // Use selectArtifact to handle tab activation
     };
 
     return (
@@ -364,7 +377,7 @@ const WorkingSpaceContent = () => {
                             <Tooltip title="Show Guide">
                                 <IconButton 
                                     size="small" 
-                                    onClick={() => setShowGuide(true)}
+                                    onClick={handleShowGuide}
                                     sx={{ mr: 1 }}
                                 >
                                     <InfoIcon />
