@@ -24,16 +24,38 @@ import {
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 
 const ArtifactGuide = ({ onClose }) => {
-  const { artifacts, artifactTypeSettings, toggleSticky } = useWorkspace();
+  const { 
+    artifacts, 
+    artifactTypeSettings, 
+    toggleSticky, 
+    selectArtifact,
+    setShowArtifactTypeList
+  } = useWorkspace();
 
   // Calculate artifact counts by type
   const artifactCounts = React.useMemo(() => {
     if (!artifacts?.items) return {};
     return artifacts.items.reduce((acc, artifact) => {
-      acc[artifact.art_type] = (acc[artifact.art_type] || 0) + 1;
+      acc[artifact.art_type] = {
+        count: (acc[artifact.art_type]?.count || 0) + 1,
+        artifacts: [...(acc[artifact.art_type]?.artifacts || []), artifact]
+      };
       return acc;
     }, {});
   }, [artifacts]);
+
+  const handleCountClick = (type) => {
+    const typeData = artifactCounts[type];
+    if (!typeData) return;
+
+    if (typeData.count === 1) {
+      // If only one artifact, open it directly
+      selectArtifact(typeData.artifacts[0].document_id);
+    } else {
+      // If multiple artifacts, open the list view
+      setShowArtifactTypeList(type);
+    }
+  };
 
   // Group artifact types by phase
   const groupedArtifacts = React.useMemo(() => {
@@ -104,10 +126,12 @@ const ArtifactGuide = ({ onClose }) => {
                       </TableCell>
                       <TableCell align="center">
                         <Chip
-                          label={artifactCounts[item.type] || 0}
+                          label={artifactCounts[item.type]?.count || 0}
                           size="small"
-                          color={artifactCounts[item.type] ? "primary" : "default"}
-                          variant={artifactCounts[item.type] ? "filled" : "outlined"}
+                          color={artifactCounts[item.type]?.count ? "primary" : "default"}
+                          variant={artifactCounts[item.type]?.count ? "filled" : "outlined"}
+                          onClick={() => artifactCounts[item.type]?.count && handleCountClick(item.type)}
+                          clickable={!!artifactCounts[item.type]?.count}
                         />
                       </TableCell>
                     </TableRow>

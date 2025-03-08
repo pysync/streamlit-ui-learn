@@ -13,6 +13,8 @@ import { getWorkspace,
 import { useLoading } from './LoadingContext';
 import { useMessage } from './MessageContext';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
+import { ARTIFACT_TYPE_OPTIONS } from '../constants/sdlcConstants';
+import { generateDocumentId } from '../utils/documentUtils';
 
 const WorkspaceContext = createContext();
 
@@ -23,6 +25,13 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const [activeArtifactDocumentId, setActiveArtifactDocumentId] = useState(null); // Active tab state
     const [activeArtifact, setActiveArtifact] = useState(null); // The active artifact object
     const [isLoading, setIsLoading] = useState(false);
+    const [artifactTypeSettings, setArtifactTypeSettings] = useState(
+        ARTIFACT_TYPE_OPTIONS.reduce((acc, type) => ({
+            ...acc,
+            [type.value]: { isSticky: false }
+        }), {})
+    );
+    const [showArtifactTypeList, setShowArtifactTypeList] = useState(null);
 
     const { loading, showLoading, hideLoading } = useLoading()
     const { showError, clearMessage } = useMessage()
@@ -97,12 +106,46 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const execCreateArtifact = async (artifactData) => {
         showLoading();
         try {
-            const newArtifact = await createArtifact(currentWorkspace.id, artifactData);
-            await execLoadArtifacts();
+            // Ensure we have a document_id
+            const documentId = artifactData.document_id || generateDocumentId();
+            
+            const newArtifact = await createArtifact(currentWorkspace.id, {
+                ...artifactData,
+                document_id: documentId,
+                content: artifactData.content || '',
+                dependencies: artifactData.dependencies || []
+            });
+
+            // Update artifacts list
+            setArtifacts(currentArtifacts => {
+                if (!currentArtifacts || !currentArtifacts.items) {
+                    return { items: [newArtifact] };
+                }
+                return {
+                    ...currentArtifacts,
+                    items: [...currentArtifacts.items, newArtifact]
+                };
+            });
+
+            // Update opened artifacts if this was a temp one
+            if (artifactData.isNew) {
+                setOpenedArtifacts(current => 
+                    current.map(art => 
+                        art.document_id === artifactData.document_id ? newArtifact : art
+                    )
+                );
+            } else {
+                // Add to opened artifacts if not already there
+                addOpenedArtifact(newArtifact);
+            }
+
+            // Set as active
+            setActiveArtifactDocumentId(documentId);
+            
             return newArtifact;
         } catch (error) {
             console.error("Error creating artifact:", error);
-            showError("Failed to create new artifact.");
+            showError("Failed to create artifact.");
             throw error;
         } finally {
             hideLoading();
@@ -248,6 +291,16 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         }
     };
 
+    const toggleSticky = (typeValue) => {
+        setArtifactTypeSettings(current => ({
+            ...current,
+            [typeValue]: {
+                ...current[typeValue],
+                isSticky: !current[typeValue]?.isSticky
+            }
+        }));
+    };
+
     const value = {
         currentWorkspace,
         setCurrentWorkspace,
@@ -270,6 +323,10 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
         setActiveArtifactDocumentId, // Set active artifact by document ID
         fetchArtifacts,
         getCurrentArtifact,
+        artifactTypeSettings,
+        toggleSticky,
+        showArtifactTypeList,
+        setShowArtifactTypeList,
     };
 
     return (

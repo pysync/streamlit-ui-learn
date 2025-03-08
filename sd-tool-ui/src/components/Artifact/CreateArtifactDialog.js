@@ -19,12 +19,13 @@ import {
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext'; // Import Loading Context
 import { useMessage } from '../../contexts/MessageContext'; // Import Message Context
-import generateDocumentId from '../../utils/generateDocumentId'; // Import generateDocumentId
+import { generateDocumentId } from '../../utils/documentUtils';
 import { 
     ARTIFACT_TYPE_OPTIONS, 
     ARTIFACT_TYPE_TO_PHASE, 
     PHASE_LABELS 
 } from '../../constants/sdlcConstants';
+import { v4 as uuidv4 } from 'uuid';
 
 const CreateArtifactDialog = ({ open, onClose }) => {
     const [title, setTitle] = useState('');
@@ -49,13 +50,14 @@ const CreateArtifactDialog = ({ open, onClose }) => {
         showLoading();
         try {
             await execCreateArtifact({
-                title: title.trim(),
+                title: title,
                 art_type: artType,
                 content: '',
-                dependencies: []
+                dependencies: [],
+                document_id: generateDocumentId()
             });
+            onClose();
             showMessage('Artifact created successfully', 'success');
-            handleClose();
         } catch (error) {
             console.error('Error creating artifact:', error);
             showError('Failed to create artifact');

@@ -141,6 +141,7 @@ export async function getArtifactVersions(document_id) {
  */
 export async function createArtifact(workspace_id, artifactData) {
   // artifact data should have:  document_id, title, content, art_type
+  console.log("artifactData: ", artifactData);  
   const { document_id, title, content, art_type, dependencies } = artifactData
   const url = `${BASE_URL}/artifacts/`;
   const response = await fetch(url, {

@@ -1,6 +1,6 @@
 # backend/crud/workspace.py
 import datetime
-from sqlmodel import select
+from sqlmodel import select, desc
 from backend.models.workspace import Workspace
 from backend.config import db_engine  # Database engine for session handling
 from typing import List, Optional, Tuple
@@ -35,9 +35,10 @@ def list_workspaces(limit: int = 10, page: int = 1) -> Tuple[List[Workspace], in
         total = session.exec(select(func.count()).select_from(Workspace)).one()
         
         workspaces = (
-            session.exec(select(Workspace).offset((page - 1) * limit).limit(limit))
+            session.exec(select(Workspace).order_by(desc(Workspace.updated_at)).offset((page - 1) * limit).limit(limit))
             .all()
         )
+
     return workspaces, total
 
 

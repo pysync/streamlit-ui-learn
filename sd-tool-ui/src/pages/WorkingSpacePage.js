@@ -42,6 +42,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import ArtifactTypesSettingsDialog from '../components/Settings/ArtifactTypesSettingsDialog';
 import InfoIcon from '@mui/icons-material/Info';
 import ArtifactGuide from '../components/Guide/ArtifactGuide';
+import ArtifactTypeList from '../components/Artifact/ArtifactTypeList';
 
 const drawerWidth = 240;
 
@@ -71,7 +72,8 @@ const WorkingSpaceContent = () => {
         selectArtifact,
         removeOpenedArtifact,
         activeArtifact,
-        fetchArtifacts
+        fetchArtifacts,
+        showArtifactTypeList
     } = useWorkspace();
     
     const [currentPhase, setCurrentPhase] = useState(SDLC_PHASES.PLANNING);
@@ -151,6 +153,10 @@ const WorkingSpaceContent = () => {
 
     // Determine which content to show based on the active artifact
     const renderContent = () => {
+        if (showArtifactTypeList) {
+            return <ArtifactTypeList artifactType={showArtifactTypeList} />;
+        }
+
         if (showGuide && (!activeArtifactDocumentId || activeArtifactDocumentId === 'guide')) {
             return <ArtifactGuide />;
         }
