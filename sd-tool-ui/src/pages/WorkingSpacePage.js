@@ -322,6 +322,11 @@ const WorkingSpaceContent = () => {
         }
     };
 
+    // Update the click handler to pass the event
+    const handleContextMenuClick = (event) => {
+        setContextMenuAnchorEl(event.currentTarget);
+    };
+
     return (
         <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <WorkspaceSidebar />
@@ -523,7 +528,7 @@ const WorkingSpaceContent = () => {
 
                             <IconButton 
                                 size="small"
-                                onClick={() => setContextMenuAnchorEl(true)}
+                                onClick={handleContextMenuClick}
                                 sx={{ ml: 1 }}
                             >
                                 <MoreVertIcon />
@@ -533,6 +538,14 @@ const WorkingSpaceContent = () => {
                                 anchorEl={contextMenuAnchorEl}
                                 open={Boolean(contextMenuAnchorEl)}
                                 onClose={() => setContextMenuAnchorEl(null)}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'right',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'right',
+                                }}
                             >
                                 <MenuItem onClick={() => {
                                     setIsSettingsDialogOpen(true);
@@ -540,9 +553,13 @@ const WorkingSpaceContent = () => {
                                 }}>
                                     Artifact Types Settings
                                 </MenuItem>
-                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>Workspace Settings</MenuItem>
+                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>
+                                    Workspace Settings
+                                </MenuItem>
                                 <Divider />
-                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>Help</MenuItem>
+                                <MenuItem onClick={() => setContextMenuAnchorEl(null)}>
+                                    Help
+                                </MenuItem>
                             </Menu>
                         </Box>
                     </Toolbar>
