@@ -270,7 +270,6 @@ const ProjectPlanTab = ({ layoutMode }) => {
         <Box 
             id="project-plan-tab"
             sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-            data-save-handler={handleSaveNote}
         >
             <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
                 <PanelGroup 

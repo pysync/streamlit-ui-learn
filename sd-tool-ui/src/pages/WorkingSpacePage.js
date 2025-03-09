@@ -414,11 +414,10 @@ const WorkingSpaceContent = () => {
                                     )}
                                     {openedArtifacts
                                         .filter(artifact => {
-                                            // Much stricter filtering to prevent "New Note" ghost tabs
                                             return artifact && 
                                                    artifact.document_id && 
                                                    openTabs.artifacts.includes(artifact.document_id) &&
-                                                   artifact.title !== "New Note"; // Specifically filter out "New Note" tabs
+                                                   artifact.title !== "New Note";
                                         })
                                         .map((artifact) => (
                                             <Tab
@@ -431,6 +430,11 @@ const WorkingSpaceContent = () => {
                                                     />
                                                 }
                                                 value={artifact.document_id}
+                                                onClick={() => handleTabSelect(null, artifact.document_id)}
+                                                sx={{
+                                                    minHeight: 48,
+                                                    py: 0
+                                                }}
                                             />
                                         ))}
                                 </Tabs>
