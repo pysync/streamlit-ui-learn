@@ -36,12 +36,6 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const { loading, showLoading, hideLoading } = useLoading()
     const { showError, clearMessage } = useMessage()
 
-
-    console.log("current setted: activeArtifactDocumentId = ", activeArtifactDocumentId);
-    console.log("current setted: activeArtifact = ", activeArtifact);
-    console.log("current setted: openedArtifacts = ", openedArtifacts);
-    console.log("current setted: artifacts = ", artifacts);
-
     // Effect to update activeArtifact when activeArtifactDocumentId changes
     useEffect(() => {
         if (activeArtifactDocumentId) {
@@ -246,7 +240,6 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     };
 
     const updateOpenedArtifactInList = useCallback((updatedArtifact) => {
-        console.log("Updating artifact in list:", updatedArtifact);
         
         setOpenedArtifacts(currentArtifacts => 
             currentArtifacts.map(art => 

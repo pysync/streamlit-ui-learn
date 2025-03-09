@@ -69,13 +69,13 @@ export const ARTIFACT_TYPE_LABELS = {
 
   // Requirements
   [ARTIFACT_TYPES.SRS_DOCUMENT]: 'SRS Document',
-  [ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS]: 'Functional Requirements Document',
-  [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS]: 'Non-Functional Requirements Document',
+  [ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS]: 'Functional Requirements',
+  [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS]: 'Non-Functional Requirements',
   [ARTIFACT_TYPES.REQUIREMENTS_TRACE_MATRIX]: 'Requirements Traceability Matrix',
-  [ARTIFACT_TYPES.UAT_DOCUMENTS]: 'User Acceptance Test Documents',
+  [ARTIFACT_TYPES.UAT_DOCUMENTS]: 'User Acceptance Test',
 
   // Design
-  [ARTIFACT_TYPES.BASIC_DESIGN]: 'Basic/Preliminary Design Document',
+  [ARTIFACT_TYPES.BASIC_DESIGN]: 'Basic/Preliminary Design',
   [ARTIFACT_TYPES.WIREFRAME]: 'Wireframe / UI/UX Design',
   [ARTIFACT_TYPES.SCREEN_MAP]: 'Screen Map/Layout',
   [ARTIFACT_TYPES.SYSTEM_DIAGRAM]: 'System & Component Diagrams',

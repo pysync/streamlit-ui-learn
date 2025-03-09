@@ -302,16 +302,22 @@ const WorkingSpaceContent = () => {
 
     // Close type list tab
     const handleCloseTypeList = (e) => {
-        e?.stopPropagation();
-        setOpenTabs(prev => ({ ...prev, typeList: null }));
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        setOpenTabs(prev => ({
+            ...prev,
+            typeList: null
+        }));
         setShowArtifactTypeList(null);
         
-        // Activate another tab if type list was active
+        // If typeList was the active tab, switch to guide or first available artifact
         if (activeTabId === 'typeList') {
             if (openTabs.guide) {
                 setActiveTabId('guide');
             } else if (openTabs.artifacts.length > 0) {
-                setActiveTabId(openTabs.artifacts[openTabs.artifacts.length - 1]);
+                setActiveTabId(openTabs.artifacts[0]);
             }
         }
     };
@@ -386,6 +392,7 @@ const WorkingSpaceContent = () => {
                                         }
                                     }}
                                 >
+                                    {/* Guide Tab */}
                                     {openTabs.guide && (
                                         <Tab
                                             component="div"
@@ -397,21 +404,33 @@ const WorkingSpaceContent = () => {
                                                 />
                                             }
                                             value="guide"
+                                            sx={{
+                                                minHeight: 48,
+                                                py: 0
+                                            }}
                                         />
                                     )}
+
+                                    {/* Type List Tab */}
                                     {openTabs.typeList && (
                                         <Tab
                                             component="div"
                                             label={
                                                 <TabLabel
                                                     icon={getArtifactIcon(openTabs.typeList)}
-                                                    label={`${getArtifactTypeLabel(openTabs.typeList)} List`}
+                                                    label={`${getArtifactTypeLabel(openTabs.typeList)}`}
                                                     onClose={handleCloseTypeList}
                                                 />
                                             }
                                             value="typeList"
+                                            sx={{
+                                                minHeight: 48,
+                                                py: 0
+                                            }}
                                         />
                                     )}
+
+                                    {/* Artifact Tabs */}
                                     {openedArtifacts
                                         .filter(artifact => {
                                             return artifact && 
@@ -426,6 +445,7 @@ const WorkingSpaceContent = () => {
                                                 label={
                                                     <TabLabel
                                                         label={artifact.title || 'Untitled'}
+                                                        icon={getArtifactIcon(artifact.art_type)}
                                                         onClose={(e) => handleCloseArtifact(artifact.document_id, e)}
                                                     />
                                                 }
