@@ -8,52 +8,52 @@ import { getDefaultVisualization } from '../../constants/artifactVisualizations'
 import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
 
 // Lazy load renderers to improve performance
-const DocumentRenderer = React.lazy(() => import('./renderers/DocumentRenderer'));
-const GanttRenderer = React.lazy(() => import('./renderers/GanttRenderer'));
-const TableRenderer = React.lazy(() => import('./renderers/TableRenderer'));
-const DiagramRenderer = React.lazy(() => import('./renderers/DiagramRenderer'));
-const ApiSpecRenderer = React.lazy(() => import('./renderers/ApiSpecRenderer'));
-const KanbanRenderer = React.lazy(() => import('./renderers/KanbanRenderer'));
-const ChartRenderer = React.lazy(() => import('./renderers/ChartRenderer'));
-const ListRenderer = React.lazy(() => import('./renderers/ListRenderer'));
+const DocumentRenderer = React.lazy(() => import('./DocumentViewer'));
+// const GanttRenderer = React.lazy(() => import('./renderers/GanttViewer'));
+// const TableRenderer = React.lazy(() => import('./renderers/TableViewer'));
+// const DiagramRenderer = React.lazy(() => import('./renderers/DiagramViewer'));
+// const ApiSpecRenderer = React.lazy(() => import('./renderers/ApiSpecViewer'));
+// const KanbanRenderer = React.lazy(() => import('./renderers/KanbanViewer'));
+// const ChartRenderer = React.lazy(() => import('./renderers/ChartViewer'));
+// const ListRenderer = React.lazy(() => import('./renderers/ListViewer'));
 
 // Map artifact types to their primary renderers
 const ARTIFACT_RENDERERS = {
   // Planning Phase
   [ARTIFACT_TYPES.BUSINESS_CASE]: DocumentRenderer,
   [ARTIFACT_TYPES.PROJECT_CHARTER]: DocumentRenderer,
-  [ARTIFACT_TYPES.PROJECT_PLAN]: GanttRenderer,
-  [ARTIFACT_TYPES.STAKEHOLDER_ANALYSIS]: TableRenderer,
-  [ARTIFACT_TYPES.RISK_MANAGEMENT_PLAN]: TableRenderer,
+  // [ARTIFACT_TYPES.PROJECT_PLAN]: GanttRenderer,
+  // [ARTIFACT_TYPES.STAKEHOLDER_ANALYSIS]: TableRenderer,
+  // [ARTIFACT_TYPES.RISK_MANAGEMENT_PLAN]: TableRenderer,
   
-  // Requirements Phase
-  [ARTIFACT_TYPES.BUSINESS_REQUIREMENTS_SPEC]: DocumentRenderer,
-  [ARTIFACT_TYPES.USER_STORIES]: KanbanRenderer,
-  [ARTIFACT_TYPES.USE_CASE_DIAGRAMS]: DiagramRenderer,
-  [ARTIFACT_TYPES.FUNCTIONAL_SPECIFICATION]: DocumentRenderer,
-  [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS_SPEC]: DocumentRenderer,
-  [ARTIFACT_TYPES.DATA_DICTIONARY]: TableRenderer,
-  [ARTIFACT_TYPES.REQUIREMENTS_TRACEABILITY_MATRIX]: TableRenderer,
+  // // Requirements Phase
+  // [ARTIFACT_TYPES.BUSINESS_REQUIREMENTS_SPEC]: DocumentRenderer,
+  // [ARTIFACT_TYPES.USER_STORIES]: KanbanRenderer,
+  // [ARTIFACT_TYPES.USE_CASE_DIAGRAMS]: DiagramRenderer,
+  // [ARTIFACT_TYPES.FUNCTIONAL_SPECIFICATION]: DocumentRenderer,
+  // [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS_SPEC]: DocumentRenderer,
+  // [ARTIFACT_TYPES.DATA_DICTIONARY]: TableRenderer,
+  // [ARTIFACT_TYPES.REQUIREMENTS_TRACEABILITY_MATRIX]: TableRenderer,
   
-  // Design Phase
-  [ARTIFACT_TYPES.SYSTEM_ARCHITECTURE_DOCUMENT]: DocumentRenderer,
-  [ARTIFACT_TYPES.DATABASE_DESIGN_DOCUMENT]: DiagramRenderer,
-  [ARTIFACT_TYPES.API_SPECIFICATION]: ApiSpecRenderer,
-  [ARTIFACT_TYPES.UI_UX_DESIGN_SPECIFICATION]: DocumentRenderer,
-  [ARTIFACT_TYPES.TECHNICAL_DESIGN_DOCUMENT]: DocumentRenderer,
-  [ARTIFACT_TYPES.DEPLOYMENT_ARCHITECTURE]: DiagramRenderer,
-  [ARTIFACT_TYPES.SECURITY_DESIGN_DOCUMENT]: DocumentRenderer,
+  // // Design Phase
+  // [ARTIFACT_TYPES.SYSTEM_ARCHITECTURE_DOCUMENT]: DocumentRenderer,
+  // [ARTIFACT_TYPES.DATABASE_DESIGN_DOCUMENT]: DiagramRenderer,
+  // [ARTIFACT_TYPES.API_SPECIFICATION]: ApiSpecRenderer,
+  // [ARTIFACT_TYPES.UI_UX_DESIGN_SPECIFICATION]: DocumentRenderer,
+  // [ARTIFACT_TYPES.TECHNICAL_DESIGN_DOCUMENT]: DocumentRenderer,
+  // [ARTIFACT_TYPES.DEPLOYMENT_ARCHITECTURE]: DiagramRenderer,
+  // [ARTIFACT_TYPES.SECURITY_DESIGN_DOCUMENT]: DocumentRenderer,
   
-  // Testing Phase
-  [ARTIFACT_TYPES.TEST_PLAN]: DocumentRenderer,
-  [ARTIFACT_TYPES.TEST_CASES_SPECIFICATION]: TableRenderer,
-  [ARTIFACT_TYPES.TEST_DATA]: TableRenderer,
-  [ARTIFACT_TYPES.TEST_EXECUTION_REPORT]: ChartRenderer,
-  [ARTIFACT_TYPES.DEFECT_REPORT]: TableRenderer,
-  [ARTIFACT_TYPES.PERFORMANCE_TEST_REPORT]: ChartRenderer,
-  [ARTIFACT_TYPES.SECURITY_TEST_REPORT]: ChartRenderer,
-  [ARTIFACT_TYPES.UAT_PLAN]: DocumentRenderer,
-  [ARTIFACT_TYPES.UAT_REPORT]: DocumentRenderer
+  // // Testing Phase
+  // [ARTIFACT_TYPES.TEST_PLAN]: DocumentRenderer,
+  // [ARTIFACT_TYPES.TEST_CASES_SPECIFICATION]: TableRenderer,
+  // [ARTIFACT_TYPES.TEST_DATA]: TableRenderer,
+  // [ARTIFACT_TYPES.TEST_EXECUTION_REPORT]: ChartRenderer,
+  // [ARTIFACT_TYPES.DEFECT_REPORT]: TableRenderer,
+  // [ARTIFACT_TYPES.PERFORMANCE_TEST_REPORT]: ChartRenderer,
+  // [ARTIFACT_TYPES.SECURITY_TEST_REPORT]: ChartRenderer,
+  // [ARTIFACT_TYPES.UAT_PLAN]: DocumentRenderer,
+  // [ARTIFACT_TYPES.UAT_REPORT]: DocumentRenderer
 };
 
 // Map visualization types to renderer components
@@ -61,25 +61,25 @@ const VISUALIZATION_RENDERERS = {
   'document': DocumentRenderer,
   'richText': DocumentRenderer,
   'markdown': DocumentRenderer,
-  'table': TableRenderer,
-  'matrix': TableRenderer,
-  'grid': TableRenderer,
-  'chart': ChartRenderer,
-  'barChart': ChartRenderer, 
-  'pieChart': ChartRenderer,
-  'lineChart': ChartRenderer,
-  'timeline': GanttRenderer,
-  'gantt': GanttRenderer,
-  'diagram': DiagramRenderer,
-  'erd': DiagramRenderer,
-  'flow': DiagramRenderer,
-  'uml': DiagramRenderer,
-  'network': DiagramRenderer,
-  'list': ListRenderer,
-  'card': ListRenderer,
-  'kanban': KanbanRenderer,
-  'swagger': ApiSpecRenderer,
-  'apiExplorer': ApiSpecRenderer
+  // 'table': TableRenderer,
+  // 'matrix': TableRenderer,
+  // 'grid': TableRenderer,
+  // 'chart': ChartRenderer,
+  // 'barChart': ChartRenderer, 
+  // 'pieChart': ChartRenderer,
+  // 'lineChart': ChartRenderer,
+  // 'timeline': GanttRenderer,
+  // 'gantt': GanttRenderer,
+  // 'diagram': DiagramRenderer,
+  // 'erd': DiagramRenderer,
+  // 'flow': DiagramRenderer,
+  // 'uml': DiagramRenderer,
+  // 'network': DiagramRenderer,
+  // 'list': ListRenderer,
+  // 'card': ListRenderer,
+  // 'kanban': KanbanRenderer,
+  // 'swagger': ApiSpecRenderer,
+  // 'apiExplorer': ApiSpecRenderer
 };
 
 /**

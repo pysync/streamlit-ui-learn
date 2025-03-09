@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Stack } from '@mui/material';
 import { getWorkspaces, createWorkspace, updateWorkspace, deleteWorkspace } from '../services/client';
-import WorkspaceTable from '../components/Workspace/WorkspaceTable';
-import CreateWorkspaceDialog from '../components/Workspace/CreateWorkspaceDialog';
-import EditWorkspaceDialog from '../components/Workspace/EditWorkspaceDialog';
-import ConfirmDialog from '../components/Common/ConfirmDialog';
+import WorkspaceTable from '../components/workspace/WorkspaceTable';
+import CreateWorkspaceDialog from '../components/workspace/CreateWorkspaceDialog';
+import EditWorkspaceDialog from '../components/workspace/EditWorkspaceDialog';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useLoading } from '../contexts/LoadingContext';
 import { useMessage } from '../contexts/MessageContext';
-import LoadingIndicator from '../components/Common/LoadingIndicator';
-import MessageSnackbar from '../components/Common/MessageSnackbar';
+import LoadingIndicator from '../components/common/LoadingIndicator';
+import MessageSnackbar from '../components/common/MessageSnackbar';
 import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {

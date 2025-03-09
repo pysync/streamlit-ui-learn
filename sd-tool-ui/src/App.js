@@ -6,8 +6,8 @@ import { LoadingProvider } from './contexts/LoadingContext';
 import { MessageProvider } from './contexts/MessageContext';
 import { EditorProvider } from './contexts/EditorContext';
 
-import MessageSnackbar from './components/Common/MessageSnackbar';
-import LoadingIndicator from './components/Common/LoadingIndicator';
+import MessageSnackbar from './components/common/MessageSnackbar';
+import LoadingIndicator from './components/common/LoadingIndicator';
 
 import theme from './theme';
 

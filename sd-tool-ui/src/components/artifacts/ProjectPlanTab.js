@@ -9,8 +9,8 @@ import {
     ButtonGroup,
 } from '@mui/material';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import MarkdownEditor from './MarkdownEditor';
-import ExcalidrawComponent from './ExcalidrawComponent';
+import MarkdownEditor from '../shared/MarkdownEditor';
+import ExcalidrawComponent from '../shared/ExcalidrawComponent';
 import BacklogBoard from './BacklogBoard';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -20,11 +20,11 @@ import { useMessage } from '../../contexts/MessageContext';
 import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
 import { ARTIFACT_VISUALIZATIONS } from '../../constants/artifactVisualizations';
 import { useEditor } from '../../contexts/EditorContext';
-import ViewColumnIcon from '@mui/icons-material/ViewColumn';
-import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
-import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
-import TableRowsIcon from '@mui/icons-material/TableRows';
-import ArtifactRendererFactory from '../Renderers/ArtifactRendererFactory';
+// import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+// import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
+// import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
+// import TableRowsIcon from '@mui/icons-material/TableRows';
+import ArtifactRenderer from './ArtifactRenderer';
 import { getDefaultVisualization } from '../../constants/artifactVisualizations';
 
 const ProjectPlanTab = ({ layoutMode }) => {
@@ -276,7 +276,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
         const defaultVisualization = getDefaultVisualization(activeArtifact.art_type);
         
         return (
-            <ArtifactRendererFactory
+            <ArtifactRenderer
                 artifact={activeArtifact}
                 visualization={defaultVisualization}
                 visualizations={ARTIFACT_VISUALIZATIONS[activeArtifact.art_type] || []}
