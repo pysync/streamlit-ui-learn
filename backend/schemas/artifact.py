@@ -11,7 +11,7 @@ class ArtifactCreate(BaseModel):
     content: str
     document_id: str
     art_type: Optional[str] = None
-    dependencies: Optional[List[int]] = None
+    references: Optional[List[int]] = None
 
 
 #  Schema for updating an artifact (PUT request)
@@ -19,7 +19,7 @@ class ArtifactUpdate(BaseModel):
     title: Optional[str] = None
     art_type: Optional[str] = None
     content: Optional[str] = None
-    dependencies: Optional[List[int]] = None
+    references: Optional[List[int]] = None
 
 
 class RollbackRequest(BaseModel):
@@ -45,7 +45,7 @@ class ArtifactResponse(BaseModel):
     workspace_id: int = None
     document_id: str
     parent_version: Optional[int] = None
-    dependencies: Optional[List[int]] = None  # List of dependent artifact IDs
+    references: Optional[List[int]] = None  # List of dependent artifact IDs
 
     class Config:
         from_attributes = True  # Allows direct conversion from ORM models

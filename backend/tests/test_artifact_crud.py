@@ -47,7 +47,7 @@ def test_insert_artifact_version(workspace):
     content = "Content 1"
     version = 1
     parent_version = None
-    dependencies: Dict = {"dep": "value"}
+    references: Dict = {"dep": "value"}
     status = "current"
     
     artifact = insert_artifact_version(
@@ -57,7 +57,7 @@ def test_insert_artifact_version(workspace):
         content=content,
         version=version,
         parent_version=parent_version,
-        dependencies=dependencies,
+        references=references,
         status=status,
         workspace_id=workspace.id  # Use the created workspace ID
     )
@@ -69,7 +69,7 @@ def test_insert_artifact_version(workspace):
     assert artifact.content == content
     assert artifact.version == version
     assert artifact.parent_version is None
-    assert artifact.dependencies == dependencies
+    assert artifact.references == references
     assert artifact.status == status
 
 def test_create_new_artifact(workspace):

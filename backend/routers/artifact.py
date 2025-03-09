@@ -118,7 +118,7 @@ def api_create_artifact(artifact_data: ArtifactCreate):
         title=artifact_data.title,
         content=artifact_data.content,
         art_type=artifact_data.art_type,
-        dependencies=artifact_data.dependencies
+        references=artifact_data.references
     )
     return artifact
 
@@ -132,7 +132,7 @@ def api_update_artifact_version(document_id: str, update_data: ArtifactUpdate):
         update_data.title,
         update_data.content,
         update_data.art_type,
-        update_data.dependencies,
+        update_data.references,
     )
         
     return artifact
@@ -147,7 +147,7 @@ def api_set_artifact_meta(document_id: str, update_data: ArtifactUpdate):
         update_data.title,
         update_data.content,
         update_data.art_type,
-        update_data.dependencies
+        update_data.references
     )
         
     return artifact

@@ -17,7 +17,7 @@ def insert_artifact_version(
     content: str,
     version: int,
     parent_version: Optional[int],
-    dependencies: Optional[Dict],
+    references: Optional[Dict],
     status: str
 ) -> Artifact:
     now = datetime.datetime.now().isoformat()
@@ -29,7 +29,7 @@ def insert_artifact_version(
         content=content,
         version=version,
         parent_version=parent_version,
-        dependencies=dependencies,
+        references=references,
         status=status,
         created_at=now,
         updated_at=now,
@@ -46,7 +46,7 @@ def create_new_artifact(
     title: str,
     content: str,
     art_type: str = "doc",
-    dependencies: Optional[Dict] = None
+    references: Optional[Dict] = None
 ) -> Artifact:
     """
     Creates a new document (artifact) with version 1.
@@ -59,7 +59,7 @@ def create_new_artifact(
         content=content,
         version=1,
         parent_version=None,
-        dependencies=dependencies,
+        references=references,
         status="current"
     )
 
@@ -134,7 +134,7 @@ def update_artifact_version(
     new_title: str,
     new_content: str,
     new_art_type: str,
-    new_dependencies: Optional[Dict] = None
+    new_references: Optional[Dict] = None
 ) -> Artifact:
     """
     Archives the current version of the document (by document_id) and creates a new version with updated content.
@@ -163,8 +163,8 @@ def update_artifact_version(
     # if new_art_type is provided, use it, otherwise use the current art_type
     art_type = new_art_type if new_art_type else current.art_type
     
-    # If no new dependencies are provided, keep the current ones
-    dependencies = new_dependencies if new_dependencies else current.dependencies
+    # If no new references are provided, keep the current ones
+    references = new_references if new_references else current.references
 
     # If no new title is provided, keep the current title
     title = new_title if new_title else current.title
@@ -181,7 +181,7 @@ def update_artifact_version(
         content=content,
         version=new_version,
         parent_version=current_version,
-        dependencies=dependencies,
+        references=references,
         status="current"
     )
 
@@ -225,7 +225,7 @@ def rollback_artifact_version(document_id: str, target_version: int) -> Artifact
     art_type = target.art_type
     title = target.title
     content = target.content
-    dependencies = target.dependencies if target.dependencies else []
+    references = target.references if target.references else []
 
     # Insert new artifact version
     return insert_artifact_version(
@@ -236,7 +236,7 @@ def rollback_artifact_version(document_id: str, target_version: int) -> Artifact
         content=content,
         version=new_version,
         parent_version=target.version,
-        dependencies=dependencies,
+        references=references,
         status="current"
     )
 
@@ -245,10 +245,10 @@ def set_artifact_meta(
     new_title: Optional[str] = None,
     new_content: Optional[str] = None,
     new_art_type: Optional[str] = None,
-    new_dependencies: Optional[Dict] = None
+    new_references: Optional[Dict] = None
 ) -> Artifact:
     """
-    Updates the metadata (title, content, dependencies) of the current version of an artifact
+    Updates the metadata (title, content, references) of the current version of an artifact
     without creating a new version or archiving the existing one.
     """
     # Fetch the current artifact based on document_id.
@@ -269,9 +269,9 @@ def set_artifact_meta(
             # Update art_type if provided
             if new_art_type is not None:
                 artifact.art_type = new_art_type
-            # Update dependencies if provided
-            if new_dependencies is not None:
-                artifact.dependencies = new_dependencies
+            # Update references if provided
+            if new_references is not None:
+                artifact.references = new_references
 
             # Update the timestamp
             artifact.updated_at = datetime.datetime.now()

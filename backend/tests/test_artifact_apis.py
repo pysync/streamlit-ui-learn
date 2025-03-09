@@ -253,7 +253,7 @@ def test_set_artifact_meta_api():
         "title": "Updated API Title",
         "content": "Updated API Content",
         "art_type": "doc",
-        "dependencies": [1, 2]
+        "references": [1, 2]
     }
 
     # Step 3: Call the /setmeta endpoint
@@ -265,7 +265,7 @@ def test_set_artifact_meta_api():
     assert updated_data["document_id"] == document_id
     assert updated_data["title"] == update_payload["title"]
     assert updated_data["content"] == update_payload["content"]
-    assert updated_data["dependencies"] == update_payload["dependencies"]
+    assert updated_data["references"] == update_payload["references"]
     assert updated_data["version"] == initial_version # Version should NOT change
     assert updated_data["status"] == "current"
 

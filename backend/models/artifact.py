@@ -13,7 +13,7 @@ class Artifact(SQLModel, table=True):
     version: int = Field(default=1)  # version number (starts at 1)
     parent_version: Optional[int] = None  # previous version number (if any)
     status: str = Field(default="current")  # "current" or "archived"
-    dependencies: Optional[Dict] = Field(
+    references: Optional[Dict] = Field(
         default=None, sa_column=Column(JSON, nullable=True)
     )
     created_at: str = Field(default_factory=lambda: datetime.datetime.now().isoformat())
