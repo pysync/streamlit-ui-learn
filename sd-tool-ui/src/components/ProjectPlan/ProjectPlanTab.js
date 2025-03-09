@@ -18,11 +18,14 @@ import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
 import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
+import { ARTIFACT_VISUALIZATIONS } from '../../constants/artifactVisualizations';
 import { useEditor } from '../../contexts/EditorContext';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
 import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
 import TableRowsIcon from '@mui/icons-material/TableRows';
+import ArtifactRendererFactory from '../Artifact/ArtifactRendererFactory';
+import { getDefaultVisualization } from '../../constants/artifactVisualizations';
 
 const ProjectPlanTab = ({ layoutMode }) => {
     const [isNotesPaneVisible, setIsNotesPaneVisible] = useState(true);
@@ -52,8 +55,6 @@ const ProjectPlanTab = ({ layoutMode }) => {
     } = useWorkspace();
 
     const { registerSaveHandler, registerFullscreenHandler } = useEditor();
-
-
 
     // Load content when active artifact changes
     useEffect(() => {
@@ -208,61 +209,82 @@ const ProjectPlanTab = ({ layoutMode }) => {
             );
         }
 
-        // For now, we'll just show the split pane layout for all artifacts
+        // Special handling for note and wireframe types
+        if (activeArtifact.art_type === ARTIFACT_TYPES.NOTE || 
+            activeArtifact.art_type === ARTIFACT_TYPES.WIREFRAME || 
+            activeArtifact.art_type === ARTIFACT_TYPES.BACKLOG_ITEM) {
+            // Use the existing implementation for these types
+            return (
+                <Box>
+                    <PanelGroup direction="horizontal" ref={panelGroupRef}>
+                        {isNotesPaneVisible && (
+                            <Panel
+                                className="panel-item"
+                                minSize={20}
+                                defaultSize={isWireframePaneVisible ? 50 : 100}
+                                id="notes-panel-id"
+                            >
+                                <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                    <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
+                                        <MarkdownEditor
+                                            noteTitle={noteTitle || ""}
+                                            markdownContent={noteMarkdownContent || ""}
+                                            onContentChange={handleNoteContentChange}
+                                            onTitleChange={handleNoteTitleChange}
+                                            onSave={handleSaveNote}
+                                            artifactId={activeArtifact?.document_id}
+                                            activeArtifact={activeArtifact}
+                                        />
+                                    </Paper>
+                                </Box>
+                            </Panel>
+                        )}
+                        
+                        {isNotesPaneVisible && isWireframePaneVisible && <PanelResizeHandle className="resizer" />}
+
+                        {isWireframePaneVisible && (
+                            <Panel
+                                className="panel-item"
+                                minSize={20}
+                                defaultSize={50}
+                                id="wireframe-panel-id"
+                            >
+                                <Box sx={{ height: '100%', overflow: 'auto' }}>
+                                    <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
+                                        <Typography variant="h6" gutterBottom>Draft Wireframe</Typography>
+                                        <ExcalidrawComponent />
+                                    </Paper>
+                                </Box>
+                            </Panel>
+                        )}
+                    </PanelGroup>
+
+                    {activeArtifact.art_type === ARTIFACT_TYPES.BACKLOG_ITEM && (
+                        <Box mt={2}>
+                            <Paper elevation={2} sx={{ p: 2 }}>
+                                <Typography variant="h6" gutterBottom>Project Backlog</Typography>
+                                <BacklogBoard />
+                            </Paper>
+                        </Box>
+                    )}
+                </Box>
+            );
+        }
+
+        // For all other artifact types, use the specialized renderers
+        // Get default visualization based on artifact type
+        const defaultVisualization = getDefaultVisualization(activeArtifact.art_type);
+        
         return (
-            <Box>
-                <PanelGroup direction="horizontal" ref={panelGroupRef}>
-                    {isNotesPaneVisible && (
-                        <Panel
-                            className="panel-item"
-                            minSize={20}
-                            defaultSize={isWireframePaneVisible ? 50 : 100}
-                            id="notes-panel-id"
-                        >
-                            <Box sx={{ height: '100%', overflow: 'auto' }}>
-                                <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
-                                    <MarkdownEditor
-                                        noteTitle={noteTitle || ""}
-                                        markdownContent={noteMarkdownContent || ""}
-                                        onContentChange={handleNoteContentChange}
-                                        onTitleChange={handleNoteTitleChange}
-                                        onSave={handleSaveNote}
-                                        artifactId={activeArtifact?.document_id}
-                                        activeArtifact={activeArtifact}
-                                    />
-                                </Paper>
-                            </Box>
-                        </Panel>
-                    )}
-                    
-                    {isNotesPaneVisible && isWireframePaneVisible && <PanelResizeHandle className="resizer" />}
-
-                    {isWireframePaneVisible && (
-                        <Panel
-                            className="panel-item"
-                            minSize={20}
-                            defaultSize={50}
-                            id="wireframe-panel-id"
-                        >
-                            <Box sx={{ height: '100%', overflow: 'auto' }}>
-                                <Paper elevation={2} sx={{ p: 2, height: '100%', width: '100%', boxSizing: 'border-box' }}>
-                                    <Typography variant="h6" gutterBottom>Draft Wireframe</Typography>
-                                    <ExcalidrawComponent />
-                                </Paper>
-                            </Box>
-                        </Panel>
-                    )}
-                </PanelGroup>
-
-                {activeArtifact.art_type === ARTIFACT_TYPES.BACKLOG_ITEM && (
-                    <Box mt={2}>
-                        <Paper elevation={2} sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>Project Backlog</Typography>
-                            <BacklogBoard />
-                        </Paper>
-                    </Box>
-                )}
-            </Box>
+            <ArtifactRendererFactory
+                artifact={activeArtifact}
+                visualization={defaultVisualization}
+                visualizations={ARTIFACT_VISUALIZATIONS[activeArtifact.art_type] || []}
+                isEditable={true}
+                onContentUpdate={handleNoteContentChange}
+                onVisualizationChange={(viz) => console.log('Visualization changed:', viz)}
+                layoutMode={layoutMode}
+            />
         );
     };
 
