@@ -43,6 +43,7 @@ import ArtifactTypesSettingsDialog from '../components/Settings/ArtifactTypesSet
 import InfoIcon from '@mui/icons-material/Info';
 import ArtifactGuide from '../components/Guide/ArtifactGuide';
 import ArtifactTypeList from '../components/Artifact/ArtifactTypeList';
+import TabLabel from '../components/Common/TabLabel';
 
 const drawerWidth = 240;
 
@@ -387,38 +388,26 @@ const WorkingSpaceContent = () => {
                                 >
                                     {openTabs.guide && (
                                         <Tab
+                                            component="div"
                                             label={
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    <InfoIcon sx={{ mr: 1, fontSize: 20 }} />
-                                                    Guide
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={handleCloseGuide}
-                                                        sx={{ ml: 1, p: 0.5 }}
-                                                    >
-                                                        <CloseIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
+                                                <TabLabel
+                                                    icon={<InfoIcon sx={{ fontSize: 20 }} />}
+                                                    label="Guide"
+                                                    onClose={handleCloseGuide}
+                                                />
                                             }
                                             value="guide"
                                         />
                                     )}
                                     {openTabs.typeList && (
                                         <Tab
+                                            component="div"
                                             label={
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    {getArtifactIcon(openTabs.typeList)}
-                                                    <Box sx={{ ml: 1 }}>
-                                                        {getArtifactTypeLabel(openTabs.typeList)} List
-                                                    </Box>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={handleCloseTypeList}
-                                                        sx={{ ml: 1, p: 0.5 }}
-                                                    >
-                                                        <CloseIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Box>
+                                                <TabLabel
+                                                    icon={getArtifactIcon(openTabs.typeList)}
+                                                    label={`${getArtifactTypeLabel(openTabs.typeList)} List`}
+                                                    onClose={handleCloseTypeList}
+                                                />
                                             }
                                             value="typeList"
                                         />
@@ -434,21 +423,12 @@ const WorkingSpaceContent = () => {
                                         .map((artifact) => (
                                             <Tab
                                                 key={artifact.document_id}
+                                                component="div"
                                                 label={
-                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                        {artifact.title || 'Untitled'}
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={(e) => {
-                                                                e.preventDefault(); // Add this
-                                                                e.stopPropagation(); // Make sure this works
-                                                                handleCloseArtifact(artifact.document_id, e);
-                                                            }}
-                                                            sx={{ ml: 1, p: 0.5 }}
-                                                        >
-                                                            <CloseIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Box>
+                                                    <TabLabel
+                                                        label={artifact.title || 'Untitled'}
+                                                        onClose={(e) => handleCloseArtifact(artifact.document_id, e)}
+                                                    />
                                                 }
                                                 value={artifact.document_id}
                                             />

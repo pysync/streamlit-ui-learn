@@ -36,6 +36,12 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     const { loading, showLoading, hideLoading } = useLoading()
     const { showError, clearMessage } = useMessage()
 
+
+    console.log("current setted: activeArtifactDocumentId = ", activeArtifactDocumentId);
+    console.log("current setted: activeArtifact = ", activeArtifact);
+    console.log("current setted: openedArtifacts = ", openedArtifacts);
+    console.log("current setted: artifacts = ", artifacts);
+
     // Effect to update activeArtifact when activeArtifactDocumentId changes
     useEffect(() => {
         if (activeArtifactDocumentId) {
@@ -240,37 +246,30 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
     };
 
     const updateOpenedArtifactInList = useCallback((updatedArtifact) => {
+        console.log("Updating artifact in list:", updatedArtifact);
         
-        // Update openedArtifacts state
-        setOpenedArtifacts(currentArtifacts => {
-            return currentArtifacts.map(openedArtifact => {
-                if (openedArtifact.document_id === updatedArtifact.document_id) {
-                    return updatedArtifact; // Replace with updated artifact
-                }
-                return openedArtifact; // Keep existing artifact
-            });
-        });
+        setOpenedArtifacts(currentArtifacts => 
+            currentArtifacts.map(art => 
+                art.document_id === updatedArtifact.document_id 
+                    ? {
+                        ...art,
+                        ...updatedArtifact,
+                        art_type: updatedArtifact.art_type // Explicitly set art_type
+                    } 
+                    : art
+            )
+        );
         
-        // If it's already in the artifacts list, update it there too
-        setArtifacts(currentArtifacts => { 
-            if (!currentArtifacts || !currentArtifacts.items) return currentArtifacts;
-            
-            return {
-                ...currentArtifacts,
-                items: currentArtifacts.items.map(artifact => {
-                    if (artifact.document_id === updatedArtifact.document_id) {
-                        return updatedArtifact; // Replace in artifacts list
-                    }
-                    return artifact;
-                })
-            };
-        });
-        
-        // If this is the active artifact, update activeArtifact directly too
-        if (activeArtifactDocumentId === updatedArtifact.document_id) {
-            setActiveArtifact(updatedArtifact);
+        // Also update active artifact if this is the active one
+        if (activeArtifactDocumentId === updatedArtifact.document_id && 
+            typeof setActiveArtifact === 'function') {
+            setActiveArtifact(prev => ({
+                ...prev,
+                ...updatedArtifact,
+                art_type: updatedArtifact.art_type // Explicitly set art_type
+            }));
         }
-    }, [setOpenedArtifacts, setArtifacts, activeArtifactDocumentId]);
+    }, [activeArtifactDocumentId, setActiveArtifact]);
 
 
     const addOpenedArtifact = useCallback((artifact) => { // Moved from OpenedArtifactsContext

@@ -20,4 +20,6 @@ settings = Settings()
 db_engine = create_engine(settings.DATABASE_URL, echo=False)
 
 def init_db():
+    # Add this line to force recreate tables
+    SQLModel.metadata.drop_all(db_engine)
     SQLModel.metadata.create_all(db_engine)

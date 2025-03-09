@@ -59,7 +59,6 @@ const ArtifactInspector = ({ artifact }) => {
 
   // First, add the missing state and import activeArtifactDocumentId
   const [isLoading, setIsLoading] = useState(false);
-  console.log("current setted: artType = ", artType);
 
   // Load artifact data when component receives a new artifact
   useEffect(() => {
@@ -70,7 +69,6 @@ const ArtifactInspector = ({ artifact }) => {
         dependencies: artifact.dependencies || []
       };
 
-      console.log("received artifact form remote: ", newValues);
       
       setTitle(newValues.title);
       setArtType(newValues.artType);
@@ -101,27 +99,11 @@ const ArtifactInspector = ({ artifact }) => {
     }
   }, [dependencies, artifacts]);
 
-  // Fix the updateActiveArtifact function to be safer
-  const updateActiveArtifact = (changes) => {
-    // Only attempt to update if setActiveArtifact exists and this is the active artifact
-    if (typeof setActiveArtifact === 'function' && 
-        artifact && 
-        activeArtifact && 
-        artifact.document_id === activeArtifact.document_id) {
-      
-      try {
-        setActiveArtifact(prev => ({
-          ...prev,
-          ...changes
-        }));
-      } catch (e) {
-        console.warn('Error updating active artifact:', e);
-        // Continue with the save even if this fails
-      }
-    }
-  };
+  // First, let's add some debugging to see what's happening
+  useEffect(() => {
+  }, [artType]);
 
-  // Update the handleSave to make it more resilient
+  // Simplify the handleSave function to ensure art_type is correctly passed
   const handleSave = async () => {
     if (!title.trim()) {
       showError('Title cannot be empty');
@@ -132,15 +114,18 @@ const ArtifactInspector = ({ artifact }) => {
     setIsLoading(true);
     
     try {
-      // Create a clean update object
+      // Create a clean update object with the same structure as before
       const updatedData = {
         title,
-        art_type: artType,
+        art_type: artType, // Make sure this is correctly named
         dependencies
       };
       
+      console.log("Saving artifact with data:", updatedData);
+      
       if (artifact.isNew) {
-        // For new artifacts, just update the local state
+        // For new artifacts, update the local state
+        console.log("Updating [local state] for new artifact:", artifact.document_id, "=> ",updatedData);
         updateOpenedArtifactInList({
           ...artifact,
           ...updatedData
@@ -148,6 +133,7 @@ const ArtifactInspector = ({ artifact }) => {
         showMessage('Properties updated. Save in editor to create the artifact.', 'success');
       } else {
         // For existing artifacts, update on the server
+        console.log("Updating artifact on the server:", artifact.document_id, "=> ",updatedData);
         await execUpdateArtifact(artifact.document_id, updatedData);
         showMessage('Artifact updated successfully', 'success');
       }

@@ -116,8 +116,8 @@ def test_get_artifact_by_internal_id(workspace):
 
 def test_get_current_artifact_and_versions(workspace):
     doc_id = "doc7"
-    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 7", "Content 7", )
-    artifact2 = update_artifact_version(doc_id, "Title 7 Updated", "Content 7 Updated",)
+    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 7", "Content 7")
+    artifact2 = update_artifact_version(doc_id, "Title 7 Updated", "Content 7 Updated", new_art_type="doc")
     
     current = get_current_artifact(doc_id)
     assert current is not None
@@ -132,8 +132,8 @@ def test_get_current_artifact_and_versions(workspace):
 
 def test_update_artifact_version(workspace):
     doc_id = "doc8"
-    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 8", "Content 8",)
-    artifact2 = update_artifact_version(doc_id, "Title 8 Updated", "Content 8 Updated")
+    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 8", "Content 8")
+    artifact2 = update_artifact_version(doc_id, "Title 8 Updated", "Content 8 Updated", new_art_type="doc")
     
     assert artifact2.version == artifact1.version + 1
     assert artifact2.status == "current"
@@ -142,8 +142,8 @@ def test_update_artifact_version(workspace):
 
 def test_rollback_artifact_version(workspace):
     doc_id = "doc9"
-    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 9", "Content 9",)
-    artifact2 = update_artifact_version(doc_id, "Title 9 Updated", "Content 9 Updated")
+    artifact1 = create_new_artifact(workspace.id, doc_id, "Title 9", "Content 9")
+    artifact2 = update_artifact_version(doc_id, "Title 9 Updated", "Content 9 Updated", new_art_type="doc")
     
     rolled_back = rollback_artifact_version(doc_id, 1)
     
@@ -196,8 +196,8 @@ def test_delete_artifact_by_id(workspace):
 def test_delete_artifacts_by_document(workspace):
     doc_id = "doc11"
     # Create multiple versions.
-    create_new_artifact(workspace.id, doc_id, "Title 11", "Content 11", )
-    update_artifact_version(doc_id, "Title 11 Updated", "Content 11 Updated", )
+    create_new_artifact(workspace.id, doc_id, "Title 11", "Content 11")
+    update_artifact_version(doc_id, "Title 11 Updated", "Content 11 Updated", new_art_type="doc")
     
     count = delete_artifacts_by_document(doc_id)
     assert count >= 2
@@ -206,8 +206,8 @@ def test_delete_artifacts_by_document(workspace):
     assert len(remaining) == 0
 
     # Create again and then delete only one version.
-    create_new_artifact(workspace.id, doc_id, "Title 11", "Content 11", )
-    update_artifact_version(doc_id, "Title 11 Updated", "Content 11 Updated", )
+    create_new_artifact(workspace.id, doc_id, "Title 11", "Content 11")
+    update_artifact_version(doc_id, "Title 11 Updated", "Content 11 Updated", new_art_type="doc")
     
     count_single = delete_artifacts_by_document(doc_id, version=1)
     # With two versions created, deleting version 1 should leave one remaining.

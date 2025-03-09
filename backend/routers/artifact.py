@@ -131,6 +131,7 @@ def api_update_artifact_version(document_id: str, update_data: ArtifactUpdate):
         document_id,
         update_data.title,
         update_data.content,
+        update_data.art_type,
         update_data.dependencies,
     )
         
@@ -145,6 +146,7 @@ def api_set_artifact_meta(document_id: str, update_data: ArtifactUpdate):
         document_id,
         update_data.title,
         update_data.content,
+        update_data.art_type,
         update_data.dependencies
     )
         

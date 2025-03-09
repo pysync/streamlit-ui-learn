@@ -133,6 +133,7 @@ def update_artifact_version(
     document_id: str,
     new_title: str,
     new_content: str,
+    new_art_type: str,
     new_dependencies: Optional[Dict] = None
 ) -> Artifact:
     """
@@ -159,12 +160,16 @@ def update_artifact_version(
     # Use the same artifact workspace_id as the current version
     workspace_id = current.workspace_id
     
-    # Use the same artifact type as the current version
-    art_type = current.art_type
+    # if new_art_type is provided, use it, otherwise use the current art_type
+    art_type = new_art_type if new_art_type else current.art_type
     
     # If no new dependencies are provided, keep the current ones
     dependencies = new_dependencies if new_dependencies else current.dependencies
+
+    # If no new title is provided, keep the current title
     title = new_title if new_title else current.title
+
+    # If no new content is provided, keep the current content
     content = new_content if new_content else current.content
 
     # Insert the new version of the artifact
@@ -239,6 +244,7 @@ def set_artifact_meta(
     document_id: str,
     new_title: Optional[str] = None,
     new_content: Optional[str] = None,
+    new_art_type: Optional[str] = None,
     new_dependencies: Optional[Dict] = None
 ) -> Artifact:
     """
@@ -259,7 +265,10 @@ def set_artifact_meta(
                 artifact.title = new_title
             # Update content if provided
             if new_content is not None:
-                artifact.content = new_content
+                artifact.content = new_content  
+            # Update art_type if provided
+            if new_art_type is not None:
+                artifact.art_type = new_art_type
             # Update dependencies if provided
             if new_dependencies is not None:
                 artifact.dependencies = new_dependencies

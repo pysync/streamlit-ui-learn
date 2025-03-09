@@ -17,6 +17,7 @@ class ArtifactCreate(BaseModel):
 #  Schema for updating an artifact (PUT request)
 class ArtifactUpdate(BaseModel):
     title: Optional[str] = None
+    art_type: Optional[str] = None
     content: Optional[str] = None
     dependencies: Optional[List[int]] = None
 
