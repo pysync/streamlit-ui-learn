@@ -53,7 +53,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
                 title: title,
                 art_type: artType,
                 content: textContent,
-                dependencies: [],
+                references: [],
                 document_id: generateDocumentId()
             });
             onClose();

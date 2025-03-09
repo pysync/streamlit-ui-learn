@@ -36,7 +36,7 @@ import { isEqual } from 'lodash'; // For deep comparison of objects
 const ArtifactInspector = ({ artifact }) => {
   const [title, setTitle] = useState('');
   const [artType, setArtType] = useState('');
-  const [dependencies, setDependencies] = useState([]);
+  const [references, setreferences] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dependencyArtifacts, setDependencyArtifacts] = useState([]);
   const [isDirty, setIsDirty] = useState(false); // New state to track changes
@@ -66,13 +66,13 @@ const ArtifactInspector = ({ artifact }) => {
       const newValues = {
         title: artifact.title || '',
         artType: artifact.art_type || '',
-        dependencies: artifact.dependencies || []
+        references: artifact.references || []
       };
 
       
       setTitle(newValues.title);
       setArtType(newValues.artType);
-      setDependencies(newValues.dependencies);
+      setreferences(newValues.references);
       setOriginalValues(newValues);
       setIsDirty(false);
     }
@@ -83,21 +83,21 @@ const ArtifactInspector = ({ artifact }) => {
     const currentValues = {
       title,
       artType,
-      dependencies
+      references
     };
     
     setIsDirty(!isEqual(currentValues, originalValues));
-  }, [title, artType, dependencies, originalValues]);
+  }, [title, artType, references, originalValues]);
 
-  // Find the dependency artifacts when dependencies change
+  // Find the dependency artifacts when references change
   useEffect(() => {
-    if (dependencies && dependencies.length > 0 && artifacts && artifacts.items) {
-      const deps = artifacts.items.filter(a => dependencies.includes(a.id));
+    if (references && references.length > 0 && artifacts && artifacts.items) {
+      const deps = artifacts.items.filter(a => references.includes(a.id));
       setDependencyArtifacts(deps);
     } else {
       setDependencyArtifacts([]);
     }
-  }, [dependencies, artifacts]);
+  }, [references, artifacts]);
 
   // First, let's add some debugging to see what's happening
   useEffect(() => {
@@ -118,7 +118,7 @@ const ArtifactInspector = ({ artifact }) => {
       const updatedData = {
         title,
         art_type: artType, // Make sure this is correctly named
-        dependencies
+        references
       };
       
       console.log("Saving artifact with data:", updatedData);
@@ -139,7 +139,7 @@ const ArtifactInspector = ({ artifact }) => {
       }
       
       setIsDirty(false);
-      setOriginalValues({ title, artType, dependencies });
+      setOriginalValues({ title, artType, references });
     } catch (error) {
       console.error('Error updating artifact:', error);
       showError(`Failed to update artifact: ${error.message}`);
@@ -163,11 +163,11 @@ const ArtifactInspector = ({ artifact }) => {
   };
 
   const handleDependencySelect = (selectedDeps) => { // ids
-    setDependencies(selectedDeps);
+    setreferences(selectedDeps);
   };
 
   const handleRemoveDependency = (depToRemove) => {
-    setDependencies(dependencies.filter(dep => dep !== depToRemove));
+    setreferences(references.filter(dep => dep !== depToRemove));
   };
 
   if (!artifact) {
@@ -285,10 +285,10 @@ const ArtifactInspector = ({ artifact }) => {
           </Select>
         </FormControl>
         
-        {/* Dependencies Section */}
+        {/* references Section */}
         <Box sx={{ mt: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle2">Dependencies</Typography>
+            <Typography variant="subtitle2">references</Typography>
             <Button 
               size="small" 
               onClick={() => setDialogOpen(true)} 
@@ -312,7 +312,7 @@ const ArtifactInspector = ({ artifact }) => {
               ))
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No dependencies selected
+                No references selected
               </Typography>
             )}
           </Box>
@@ -348,7 +348,7 @@ const ArtifactInspector = ({ artifact }) => {
       <ArtifactSelectDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        selectedArtifacts={dependencies}
+        selectedArtifacts={references}
         onSelect={handleDependencySelect}
       />
     </Paper>

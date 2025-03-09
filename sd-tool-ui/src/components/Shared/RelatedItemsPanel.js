@@ -26,7 +26,7 @@ import {
 /**
  * Panel displaying related artifacts with the ability to add/remove references
  */
-const RelatedArtifactsPanel = ({
+const RelatedItemsPanel = ({
   references = [], 
   onArtifactClick, 
   onAddReference, 
@@ -158,7 +158,7 @@ const RelatedArtifactsPanel = ({
   );
 };
 
-RelatedArtifactsPanel.propTypes = {
+RelatedItemsPanel.propTypes = {
   references: PropTypes.arrayOf(
     PropTypes.shape({
       artifactType: PropTypes.string.isRequired,
@@ -173,4 +173,4 @@ RelatedArtifactsPanel.propTypes = {
   editable: PropTypes.bool
 };
 
-export default RelatedArtifactsPanel; 
+export default RelatedItemsPanel; 

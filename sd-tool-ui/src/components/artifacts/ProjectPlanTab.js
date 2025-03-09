@@ -138,7 +138,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                     title: noteTitle,
                     content: noteMarkdownContent,
                     art_type: activeArtifact.art_type || ARTIFACT_TYPES.NOTE,
-                    dependencies: activeArtifact.dependencies || []
+                    references: activeArtifact.references || []
                 };
                 
                 // Update the artifact via the API
@@ -152,7 +152,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                     title: noteTitle,
                     content: noteMarkdownContent,
                     art_type: activeArtifact.art_type || ARTIFACT_TYPES.NOTE,
-                    dependencies: activeArtifact.dependencies || [],
+                    references: activeArtifact.references || [],
                     workspace_id: currentWorkspace.id,
                 };
                 
@@ -162,7 +162,7 @@ const ProjectPlanTab = ({ layoutMode }) => {
                 // Update the opened artifact with the created one
                 const updatedCreatedArtifact = {
                     ...updatedArtifact,
-                    dependencies: artifactData.dependencies
+                    references: artifactData.references
                 };
                 
                 updateOpenedArtifactInList(updatedCreatedArtifact);

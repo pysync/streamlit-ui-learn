@@ -125,7 +125,7 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Select Dependencies</DialogTitle>
+      <DialogTitle>Select references</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex',  pt: 1, mb: 2, gap: 2, alignItems: 'center' }}>
           <TextField

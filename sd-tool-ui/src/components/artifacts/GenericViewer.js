@@ -1,149 +1,114 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Typography, Paper, Button } from '@mui/material';
-import BaseArtifactViewer from '../BaseArtifactViewer';
-import RelatedItemsPanel from '../../shared/RelatedItemsPanel';
-import { useArtifact } from '../../core/ArtifactContext';
-import InfoIcon from '@mui/icons-material/Info';
+import { Box, Typography, Paper, Divider, IconButton } from '@mui/material';
+import CodeIcon from '@mui/icons-material/Code';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TabHeader from '../shared/TabHeader';
+import ViewSelector from '../shared/ViewSelector';
+import SplitView from '../shared/SplitView';
+import RelatedItemsPanel from '../shared/RelatedItemsPanel';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
 
 /**
- * Generic viewer for artifact types that don't have a specialized viewer
+ * Fallback viewer for unsupported artifact types
  */
 const GenericViewer = ({
   artifact,
   activeVisualization,
   visualizations,
   isEditable = false,
-  onVisualizationChange,
   onContentUpdate,
+  onVisualizationChange,
+  layoutMode = 'single'
 }) => {
-  const { navigateToArtifact } = useArtifact();
+  const { navigateToArtifact } = useWorkspace();
+  const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'raw'
 
-  const contentDisplay = () => {
-    if (!artifact || !artifact.content) {
-      return (
-        <Typography variant="body1" sx={{ p: 2 }}>
-          No content available for this artifact.
-        </Typography>
-      );
+  const handleVisualizationChange = (newViz) => {
+    if (onVisualizationChange) {
+      onVisualizationChange(newViz);
     }
-
-    // Try to display structured content if it's an object
-    if (typeof artifact.content === 'object') {
-      return (
-        <Box sx={{ p: 2 }}>
-          <pre>
-            {JSON.stringify(artifact.content, null, 2)}
-          </pre>
-        </Box>
-      );
-    }
-
-    // Display text content
-    return (
-      <Typography variant="body1" sx={{ p: 2 }}>
-        {artifact.content}
-      </Typography>
-    );
   };
 
-  // Handle artifact reference click
-  const handleArtifactClick = (reference) => {
-    navigateToArtifact(reference.id);
-  };
-
-  // Secondary panel content
-  const secondaryContent = artifact.references?.length > 0 ? (
+  const secondaryContent = artifact?.references?.length > 0 && (
     <RelatedItemsPanel
       references={artifact.references}
-      onArtifactClick={handleArtifactClick}
-      editable={isEditable}
+      onArtifactClick={navigateToArtifact}
     />
-  ) : null;
+  );
 
   return (
-    <BaseArtifactViewer
-      artifact={artifact}
-      activeVisualization={activeVisualization}
-      visualizations={visualizations}
-      isEditable={isEditable}
-      onVisualizationChange={onVisualizationChange}
-      headerActions={[]}
-      secondaryContent={secondaryContent}
-    >
-      <Box sx={{ 
-        p: 2, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        height: '100%' 
-      }}>
-        <Paper elevation={3} sx={{ p: 3, mb: 3, width: '100%', maxWidth: 600 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <InfoIcon color="info" sx={{ mr: 1 }} />
-            <Typography variant="h6">
-              Viewing Generic Artifact
-            </Typography>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <TabHeader
+        title={artifact?.title || 'Untitled Artifact'}
+        status={artifact?.status}
+        lastModified={artifact?.lastModified}
+        actions={[
+          <IconButton
+            key="view-mode"
+            onClick={() => setViewMode(prev => prev === 'preview' ? 'raw' : 'preview')}
+            title="Toggle View Mode"
+          >
+            {viewMode === 'preview' ? <CodeIcon /> : <DescriptionIcon />}
+          </IconButton>
+        ]}
+      />
+      
+      {visualizations && visualizations.length > 0 && (
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, py: 1 }}>
+          <ViewSelector
+            visualizations={visualizations}
+            activeVisualization={activeVisualization}
+            onChange={handleVisualizationChange}
+          />
+        </Box>
+      )}
+      
+      <SplitView
+        direction={layoutMode === 'horizontal' ? 'horizontal' : 'vertical'}
+        primaryContent={
+          <Box sx={{ p: 2, height: '100%', overflow: 'auto' }}>
+            {viewMode === 'preview' ? (
+              <Paper sx={{ p: 2, whiteSpace: 'pre-wrap' }}>
+                {typeof artifact.content === 'string' ? (
+                  artifact.content
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {JSON.stringify(artifact.content, null, 2)}
+                  </Typography>
+                )}
+              </Paper>
+            ) : (
+              <Box sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                {JSON.stringify(artifact, null, 2)}
+              </Box>
+            )}
           </Box>
-          
-          <Typography variant="body2" color="text.secondary" paragraph>
-            This is a generic view for the artifact type: <strong>{artifact.type}</strong>. 
-            A specialized viewer is not yet available for this type.
-          </Typography>
-          
-          {isEditable && (
-            <Button 
-              variant="contained" 
-              color="primary"
-              onClick={() => {
-                // Option to edit raw content if needed
-                if (onContentUpdate) {
-                  onContentUpdate(artifact);
-                }
-              }}
-            >
-              Edit Raw Content
-            </Button>
-          )}
-        </Paper>
-        
-        <Paper elevation={1} sx={{ p: 2, width: '100%' }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Artifact Content
-          </Typography>
-          <Box sx={{ 
-            maxHeight: '400px', 
-            overflow: 'auto', 
-            border: '1px solid rgba(0, 0, 0, 0.12)',
-            borderRadius: 1
-          }}>
-            {contentDisplay()}
-          </Box>
-        </Paper>
-      </Box>
-    </BaseArtifactViewer>
+        }
+        secondaryContent={secondaryContent}
+        showSecondary={layoutMode !== 'single' && !!secondaryContent}
+      />
+    </Box>
   );
 };
 
 GenericViewer.propTypes = {
   artifact: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.string,
     document_id: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired,
+    art_type: PropTypes.string.isRequired,
     title: PropTypes.string,
     content: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     references: PropTypes.array,
-    visualizations: PropTypes.array,
     version: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     status: PropTypes.string,
-    lastModified: PropTypes.string
-  }).isRequired,
-  activeVisualization: PropTypes.object,
+  }),
+  activeVisualization: PropTypes.string,
   visualizations: PropTypes.array,
   isEditable: PropTypes.bool,
+  onContentUpdate: PropTypes.func,
   onVisualizationChange: PropTypes.func,
-  onContentUpdate: PropTypes.func
-};
+  layoutMode: PropTypes.string
+}; 
 
-export default GenericViewer; 
+export default GenericViewer;

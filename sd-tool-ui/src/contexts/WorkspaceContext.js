@@ -126,7 +126,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 ...artifactData,
                 document_id: documentId,
                 content: artifactData.content || '',
-                dependencies: artifactData.dependencies || []
+                references: artifactData.references || []
             });
 
             // Update artifacts list
@@ -180,7 +180,7 @@ export const WorkspaceProvider = ({ children, workspaceId }) => {
                 title: artifactData.title || currentArtifact.title,
                 content: artifactData.content !== undefined ? artifactData.content : currentArtifact.content,
                 art_type: artifactData.art_type || currentArtifact.art_type,
-                dependencies: artifactData.dependencies || currentArtifact.dependencies || []
+                references: artifactData.references || currentArtifact.references || []
             };
             
             // Call the API

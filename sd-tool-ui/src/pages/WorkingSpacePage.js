@@ -26,7 +26,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import { WorkspaceProvider, useWorkspace } from '../contexts/WorkspaceContext';
-import ProjectPlanTab from '../components/artifacts/ProjectPlanTab';
 import CreateArtifactDialog from '../components/artifacts/CreateArtifactDialog';
 import WorkspaceSidebar from '../components/workspace/WorkspaceSidebar';
 import WorkspacePhasesSidebar from '../components/workspace/WorkspacePhasesSidebar';
@@ -44,22 +43,16 @@ import InfoIcon from '@mui/icons-material/Info';
 import ArtifactGuide from '../components/guide/ArtifactGuide';
 import ArtifactTypeList from '../components/artifacts/ArtifactTypeList';
 import TabLabel from '../components/common/TabLabel';
+import ArtifactViewer from '../components/artifacts/ArtifactViewer';
+import { WorkspaceLayoutProvider, useWorkspaceLayout } from '../contexts/WorkspaceLayoutContext';
 
 const drawerWidth = 240;
 
 const WorkingSpacePage = () => {
-    const { workspaceId } = useParams();
-    const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
-    
-    if (!workspaceId) {
-        return <div>Error: No Workspace ID provided.</div>;
-    }
-
-
     return (
-        <WorkspaceProvider workspaceId={workspaceId}>
-            <WorkingSpaceContent />
-        </WorkspaceProvider>
+        <WorkspaceLayoutProvider>
+             <WorkingSpaceContent />
+        </WorkspaceLayoutProvider>
     );
 };
 
@@ -84,7 +77,7 @@ const WorkingSpaceContent = () => {
     const [isCreateArtifactDialogOpen, setIsCreateArtifactDialogOpen] = useState(false);
     const [contextMenuAnchorEl, setContextMenuAnchorEl] = useState(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [layoutMode, setLayoutMode] = useState('single'); // 'single', 'vertical', 'horizontal'
+    const { layoutMode, setLayoutMode } = useWorkspaceLayout(); // 'single', 'vertical', 'horizontal'
     const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
     const [showGuide, setShowGuide] = useState(true);
     const tabsRef = useRef(null);
@@ -220,8 +213,11 @@ const WorkingSpaceContent = () => {
         }
         
         const activeArtifact = openedArtifacts.find(art => art.document_id === activeTabId);
+        
         if (activeArtifact) {
-            return <ProjectPlanTab layoutMode={layoutMode} />;
+            return (
+                <ArtifactViewer layoutMode={layoutMode} />
+            );
         }
         
         return (

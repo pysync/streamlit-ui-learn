@@ -44,7 +44,7 @@ export const ARTIFACT_SCHEMAS = {
           phaseId: { type: 'string' },
           startDate: { type: 'date', required: true },
           endDate: { type: 'date', required: true },
-          dependencies: { type: 'array', items: { type: 'string' } },
+          references: { type: 'array', items: { type: 'string' } },
           assignees: { type: 'array', items: { type: 'string' } },
           status: { 
             type: 'string', 
