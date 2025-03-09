@@ -1,1 +1,1 @@
-uvicorn  backend.app:app --reload
+source ./venv/bin/activate && uvicorn  backend.app:app --reload

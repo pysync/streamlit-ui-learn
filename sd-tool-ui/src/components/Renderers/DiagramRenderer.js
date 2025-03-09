@@ -27,11 +27,11 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
 // Import shared components
-import ViewTypeSelector from '../../Shared/ViewTypeSelector'
-import TabHeader from '../../Shared/TabHeader';
-import SplitView from '../../Shared/SplitView';
-import EditableTable from '../../Shared/EditableTable';
-import RelatedArtifactsPanel from '../../Shared/RelatedArtifactsPanel';
+import ViewTypeSelector from '../Shared/ViewTypeSelector'
+import TabHeader from '../Shared/TabHeader';
+import SplitView from '../Shared/SplitView';
+import EditableTable from '../Shared/EditableTable';
+import RelatedArtifactsPanel from '../Shared/RelatedArtifactsPanel';
 
 // Placeholder for a real diagramming library
 // In a real implementation, you would use a library like:

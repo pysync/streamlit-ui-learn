@@ -6,13 +6,13 @@ import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
 import { VISUALIZATION_TYPES } from '../../constants/visualizationTypes';
 
 // Import renderer components
-import DocumentRenderer from './Renderers/DocumentRenderer';
-import DiagramRenderer from './Renderers/DiagramRenderer';
-import TableRenderer from './Renderers/TableRenderer';
-import GanttRenderer from './Renderers/GanttRenderer';
+import DocumentRenderer from './DocumentRenderer';
+import DiagramRenderer from './DiagramRenderer';
+import TableRenderer from './TableRenderer';
+import GanttRenderer from './GanttRenderer';
 
 // Default renderer for unknown types
-import GenericRenderer from './Renderers/GenericRenderer';
+import GenericRenderer from './GenericRenderer';
 
 /**
  * Factory component that returns the appropriate renderer based on artifact type

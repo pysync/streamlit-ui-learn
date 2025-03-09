@@ -8,22 +8,22 @@ import {
     ButtonGroup,
 } from '@mui/material';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
-import MarkdownEditor from '../../Shared/MarkdownEditor';
-import ExcalidrawComponent from '../../Shared/ExcalidrawComponent';
-import BacklogBoard from '../../Shared/BacklogBoard';
+import MarkdownEditor from '../Shared/MarkdownEditor';
+import ExcalidrawComponent from '../Shared/ExcalidrawComponent';
+import BacklogBoard from '../Shared/BacklogBoard';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { useWorkspace } from '../../../contexts/WorkspaceContext';
-import { useLoading } from '../../../contexts/LoadingContext';
-import { useMessage } from '../../../contexts/MessageContext';
+import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useLoading } from '../../contexts/LoadingContext';
+import { useMessage } from '../../contexts/MessageContext';
 import { ARTIFACT_TYPES } from '../../../constants/sdlcConstants';
-import { useEditor } from '../../../contexts/EditorContext';
+import { useEditor } from '../../contexts/EditorContext';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
 import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
 import TableRowsIcon from '@mui/icons-material/TableRows';
-import ArtifactRendererFactory from '../ArtifactRendererFactory';
-import { getDefaultVisualization, ARTIFACT_VISUALIZATIONS } from '../../../constants/artifactVisualizations';
+import ArtifactRendererFactory from './ArtifactRendererFactory';
+import { getDefaultVisualization, ARTIFACT_VISUALIZATIONS } from '../../constants/artifactVisualizations';
 import PropTypes from 'prop-types';
 
 /**

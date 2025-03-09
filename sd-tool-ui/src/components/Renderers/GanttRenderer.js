@@ -23,11 +23,11 @@ import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 // Import shared components
-import ViewTypeSelector from '../../Shared/ViewTypeSelector';
-import TabHeader from '../../Shared/TabHeader';
-import SplitView from '../../Shared/SplitView';
-import EditableTable from '../../Shared/EditableTable';
-import RelatedArtifactsPanel from '../../Shared/RelatedArtifactsPanel';
+import ViewTypeSelector from '../Shared/ViewTypeSelector';
+import TabHeader from '../Shared/TabHeader';
+import SplitView from '../Shared/SplitView';
+import EditableTable from '../Shared/EditableTable';
+import RelatedArtifactsPanel from '../Shared/RelatedArtifactsPanel';
 
 // React Gantt Component 
 // This is a placeholder - in a real implementation you'd use a library

@@ -17,11 +17,11 @@ import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 
 // Import shared components
-import ViewTypeSelector from '../../Shared/ViewTypeSelector';
-import TabHeader from '../../Shared/TabHeader';
-import SplitView from '../../Shared/SplitView';
-import EditableTable from '../../Shared/EditableTable';
-import RelatedArtifactsPanel from '../../Shared/RelatedArtifactsPanel';
+import ViewTypeSelector from '../Shared/ViewTypeSelector';
+import TabHeader from '../Shared/TabHeader';
+import SplitView from '../Shared/SplitView';
+import EditableTable from '../Shared/EditableTable';
+import RelatedArtifactsPanel from '../Shared/RelatedArtifactsPanel';
 
 // Import utility functions for CSV export
 const exportToCSV = (data, filename) => {

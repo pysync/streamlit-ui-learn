@@ -24,7 +24,7 @@ import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import VerticalSplitIcon from '@mui/icons-material/VerticalSplit';
 import HorizontalSplitIcon from '@mui/icons-material/HorizontalSplit';
 import TableRowsIcon from '@mui/icons-material/TableRows';
-import ArtifactRendererFactory from '../Artifact/ArtifactRendererFactory';
+import ArtifactRendererFactory from '../Renderers/ArtifactRendererFactory';
 import { getDefaultVisualization } from '../../constants/artifactVisualizations';
 
 const ProjectPlanTab = ({ layoutMode }) => {

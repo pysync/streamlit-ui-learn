@@ -26,3 +26,8 @@ class Artifact(SQLModel, table=True):
     # Optional reference to workspace
     workspace_id: Optional[int] = Field(default=None, foreign_key="workspace.id")
     workspace: Optional['Workspace'] = Relationship(back_populates="artifacts")
+
+    # New field for visualization preferences
+    visualization_preferences: Optional[Dict] = Field(
+        default=None, sa_column=Column(JSON, nullable=True)
+    )

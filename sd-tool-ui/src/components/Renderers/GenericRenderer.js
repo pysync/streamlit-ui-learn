@@ -9,10 +9,10 @@ import {
 } from '@mui/material';
 
 // Import shared components
-import TabHeader from '../../Shared/TabHeader';
-import ViewTypeSelector from '../../Shared/ViewTypeSelector';
-import SplitView from '../../Shared/SplitView';
-import RelatedArtifactsPanel from '../../Shared/RelatedArtifactsPanel';
+import TabHeader from '../Shared/TabHeader';
+import ViewTypeSelector from '../Shared/ViewTypeSelector';
+import SplitView from '../Shared/SplitView';
+import RelatedArtifactsPanel from '../Shared/RelatedArtifactsPanel';
 
 /**
  * Generic renderer for artifact types without a specialized renderer

@@ -20,10 +20,10 @@ import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw } from 'dr
 import 'draft-js/dist/Draft.css';
 
 // Import shared components
-import ViewTypeSelector from '../../Shared/ViewTypeSelector';
-import TabHeader from '../../Shared/TabHeader';
-import SplitView from '../../Shared/SplitView';
-import RelatedArtifactsPanel from '../../Shared/RelatedArtifactsPanel';
+import ViewTypeSelector from '../Shared/ViewTypeSelector';
+import TabHeader from '../Shared/TabHeader';
+import SplitView from '../Shared/SplitView';
+import RelatedArtifactsPanel from '../Shared/RelatedArtifactsPanel';
 
 /**
  * Renders document-based artifacts with rich text editing capabilities
