@@ -20,7 +20,7 @@ import GenericViewer from './GenericViewer';
 const ArtifactViewer = () => {
   // Get layoutMode from context
   const { layoutMode } = useWorkspaceLayout();
-  const { activeArtifact, saveArtifact } = useWorkspace();
+  const { activeArtifact, execUpdateArtifact } = useWorkspace();
   const { registerSaveHandler, registerFullscreenHandler } = useEditor();
   const { loading, showLoading, hideLoading } = useLoading();
   const { showError, showSuccess } = useMessage();
@@ -31,7 +31,7 @@ const ArtifactViewer = () => {
     const saveCurrentArtifact = async () => {
       if (activeArtifact) {
         try {
-          await saveArtifact(activeArtifact);
+          await execUpdateArtifact(activeArtifact.document_id, activeArtifact);
           showSuccess('Artifact saved successfully');
         } catch (error) {
           showError('Failed to save artifact: ' + error.message);
@@ -55,7 +55,7 @@ const ArtifactViewer = () => {
     return () => {
       // Cleanup handlers
     };
-  }, [activeArtifact, saveArtifact, registerSaveHandler, registerFullscreenHandler, showSuccess, showError]);
+  }, [activeArtifact, execUpdateArtifact, registerSaveHandler, registerFullscreenHandler, showSuccess, showError]);
   
   // Initialize visualization when artifact changes
   useEffect(() => {
@@ -90,7 +90,7 @@ const ArtifactViewer = () => {
         lastModified: new Date().toISOString()
       };
       
-      await saveArtifact(updatedArtifact);
+      await execUpdateArtifact(updatedArtifact.document_id, updatedArtifact);
       showSuccess('Artifact saved successfully');
     } catch (error) {
       showError('Failed to save artifact: ' + error.message);
