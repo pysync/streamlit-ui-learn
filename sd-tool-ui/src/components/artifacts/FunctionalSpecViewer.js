@@ -249,6 +249,35 @@ const FunctionalSpecViewer = ({
     setIsEditing(!isEditing);
   };
 
+  // Prepare content for saving
+  const prepareContentForSave = () => {
+    const contentToSave = {
+      sections: sections,
+      sectionContent: content,
+      functions: functions
+    };
+
+    // Convert the content object to a string
+    return JSON.stringify(contentToSave);
+  };
+
+  // Handle save action
+  const handleSave = () => {
+    if (onContentUpdate) {
+      try {
+        // Convert content to string before saving
+        const stringifiedContent = prepareContentForSave();
+        console.log('Saving stringified content:', stringifiedContent);
+        
+        onContentUpdate(stringifiedContent);
+        setIsEditing(false);
+      } catch (error) {
+        console.error('Error preparing content for save:', error);
+        // You might want to show an error message to the user here
+      }
+    }
+  };
+
   // Prepare header actions
   const headerActions = [
     {
@@ -262,19 +291,7 @@ const FunctionalSpecViewer = ({
       id: 'save',
       label: 'Save',
       icon: <SaveIcon />,
-      onClick: () => {
-        if (onContentUpdate) {
-          const updatedContent = {
-            sections: sections,
-            sectionContent: content,
-            functions: functions
-          };
-          
-          console.log('Saving content:', updatedContent);
-          onContentUpdate(updatedContent);
-          setIsEditing(false);
-        }
-      },
+      onClick: handleSave,
       disabled: !isEditing
     },
     {
@@ -356,14 +373,12 @@ const FunctionalSpecViewer = ({
             }}
             onSave={() => {
               if (onContentUpdate) {
-                const updatedContent = {
-                  sections: sections,
-                  sectionContent: content,
-                  functions: functions
-                };
                 
-                console.log('Saving content:', updatedContent);
-                onContentUpdate(updatedContent);
+                // Convert content to string before saving
+                const stringifiedContent = prepareContentForSave();
+                console.log('Saving stringified content:', stringifiedContent);
+                
+                onContentUpdate(stringifiedContent);
                 setIsEditing(false);
               }
             }}
