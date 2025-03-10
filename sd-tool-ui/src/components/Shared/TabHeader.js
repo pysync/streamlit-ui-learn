@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Box, Typography, Chip, IconButton, Tooltip, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { formatDistanceToNow } from 'date-fns';
+import { formatDate } from '../../utils/dateUtils';
 
 /**
  * Shared header component for artifact tabs
@@ -14,7 +15,8 @@ const TabHeader = ({
   status = 'draft', 
   lastModified, 
   actions = [], 
-  onActionClick
+  onActionClick,
+  visualizationSelector = null
 }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -56,15 +58,40 @@ const TabHeader = ({
         flexDirection: 'column', 
         p: 2, 
         borderBottom: 1, 
-        borderColor: 'divider' 
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h5" component="h1">
-          {title || 'Untitled'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 'medium' }}>
+            {title || 'Untitled'}
+          </Typography>
+          
+          {status && (
+            <Chip
+              label={status}
+              size="small"
+              color={status === 'Draft' ? 'warning' : status === 'Published' ? 'success' : statusColors[status] || 'default'}
+              sx={{ ml: 2 }}
+            />
+          )}
+          
+          {lastModified && (
+            <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+              Last modified: {formatDate(lastModified)}
+            </Typography>
+          )}
+        </Box>
         
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Visualization selector */}
+          {visualizationSelector && (
+            <Box sx={{ mr: 2 }}>
+              {visualizationSelector}
+            </Box>
+          )}
+          
           {/* Display the main actions as buttons */}
           {actions.slice(0, 3).map(action => (
             <Tooltip key={action.id} title={action.label}>
@@ -128,16 +155,6 @@ const TabHeader = ({
           size="small" 
           variant="outlined" 
         />
-        
-        <Chip 
-          label={status} 
-          size="small"
-          color={statusColors[status] || 'default'}
-        />
-        
-        <Typography variant="body2" color="text.secondary">
-          Updated {formattedDate}
-        </Typography>
       </Box>
     </Box>
   );
@@ -154,7 +171,8 @@ TabHeader.propTypes = {
     label: PropTypes.string.isRequired,
     icon: PropTypes.node
   })),
-  onActionClick: PropTypes.func
+  onActionClick: PropTypes.func,
+  visualizationSelector: PropTypes.node
 };
 
 export default TabHeader; 

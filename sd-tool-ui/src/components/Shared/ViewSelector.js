@@ -1,91 +1,71 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Box, ToggleButtonGroup, ToggleButton, Tooltip } from '@mui/material';
+import { ToggleButtonGroup, ToggleButton, Tooltip } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import TableChartIcon from '@mui/icons-material/TableChart';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import CodeIcon from '@mui/icons-material/Code';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import { VISUALIZATION_TYPES } from '../../constants/visualizationTypes';
 
-// Icon mapping for visualization types
-const VISUALIZATION_ICONS = {
-  [VISUALIZATION_TYPES.DOCUMENT]: <DescriptionIcon />,
-  [VISUALIZATION_TYPES.TABLE]: <TableChartIcon />,
-  [VISUALIZATION_TYPES.MATRIX]: <TableChartIcon />,
-  [VISUALIZATION_TYPES.DIAGRAM]: <AccountTreeIcon />,
-  [VISUALIZATION_TYPES.GANTT]: <TimelineIcon />,
-  [VISUALIZATION_TYPES.TIMELINE]: <TimelineIcon />,
-  [VISUALIZATION_TYPES.CHART]: <BarChartIcon />,
-  [VISUALIZATION_TYPES.KANBAN]: <ViewKanbanIcon />,
-  [VISUALIZATION_TYPES.CODE]: <CodeIcon />,
-  [VISUALIZATION_TYPES.DASHBOARD]: <DashboardIcon />,
-  // Add more mappings as needed
-};
-
 /**
- * Component for switching between different visualizations of an artifact
+ * Component for selecting different visualization types
  */
-const ViewSelector = ({
-  visualizations = [],
-  activeVisualization,
-  onChange
-}) => {
-  // If there's only one visualization, don't render selector
-  if (visualizations.length <= 1) {
-    return null;
-  }
+const ViewSelector = ({ visualizations, activeVisualization, onChange, size = 'medium' }) => {
+  // Map visualization types to icons
+  const getIcon = (type) => {
+    switch (type) {
+      case VISUALIZATION_TYPES.DOCUMENT:
+        return <DescriptionIcon />;
+      case VISUALIZATION_TYPES.TABLE:
+        return <TableChartIcon />;
+      case VISUALIZATION_TYPES.DIAGRAM:
+        return <AccountTreeIcon />;
+      case VISUALIZATION_TYPES.CHART:
+        return <BarChartIcon />;
+      case VISUALIZATION_TYPES.KANBAN:
+        return <ViewKanbanIcon />;
+      case VISUALIZATION_TYPES.TIMELINE:
+        return <TimelineIcon />;
+      default:
+        return <DescriptionIcon />;
+    }
+  };
 
-  const handleViewChange = (event, newValue) => {
-    if (newValue !== null && onChange) {
-      const selectedVisualization = visualizations.find(v => v.type === newValue);
-      onChange(selectedVisualization);
+  const handleChange = (event, newValue) => {
+    if (newValue && onChange) {
+      const selectedViz = visualizations.find(v => v.type === newValue);
+      if (selectedViz) {
+        onChange(selectedViz);
+      }
     }
   };
 
   return (
-    <Box sx={{ 
-      p: 1, 
-      borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-      display: 'flex',
-      justifyContent: 'center'
-    }}>
-      <ToggleButtonGroup
-        value={activeVisualization?.type}
-        exclusive
-        onChange={handleViewChange}
-        size="small"
-      >
-        {visualizations.map((visualization) => (
-          <ToggleButton 
-            key={`${visualization.type}-${visualization.subtype || 'default'}`}
-            value={visualization.type}
-          >
-            <Tooltip title={visualization.label}>
-              {VISUALIZATION_ICONS[visualization.type] || <DescriptionIcon />}
-            </Tooltip>
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
-    </Box>
+    <ToggleButtonGroup
+      value={activeVisualization?.type || ''}
+      exclusive
+      onChange={handleChange}
+      aria-label="visualization type"
+      size={size}
+    >
+      {visualizations.map((viz) => (
+        <ToggleButton key={viz.type} value={viz.type} aria-label={viz.label}>
+          <Tooltip title={viz.label}>
+            {getIcon(viz.type)}
+          </Tooltip>
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
   );
 };
 
 ViewSelector.propTypes = {
-  visualizations: PropTypes.arrayOf(PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    subtype: PropTypes.string,
-    label: PropTypes.string.isRequired,
-    isDefault: PropTypes.bool
-  })),
-  activeVisualization: PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    subtype: PropTypes.string
-  }),
-  onChange: PropTypes.func
+  visualizations: PropTypes.array.isRequired,
+  activeVisualization: PropTypes.object,
+  onChange: PropTypes.func.isRequired,
+  size: PropTypes.oneOf(['small', 'medium', 'large'])
 };
 
 export default ViewSelector; 

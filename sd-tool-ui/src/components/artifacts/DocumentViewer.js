@@ -13,6 +13,7 @@ import RelatedItemsPanel from '../shared/RelatedItemsPanel';
 import MarkdownEditor from '../shared/MarkdownEditor';
 import MDEditor from '@uiw/react-md-editor';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
+import { useWorkspaceLayout } from '../../contexts/WorkspaceLayoutContext';
 
 /**
  * Generic document viewer for text-based artifacts
@@ -23,9 +24,9 @@ const DocumentViewer = ({
   visualizations,
   isEditable = false,
   onContentUpdate,
-  onVisualizationChange,
-  layoutMode = 'single'
+  onVisualizationChange
 }) => {
+  const { layoutMode } = useWorkspaceLayout();
   const { navigateToArtifact } = useWorkspace();
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState('');
@@ -115,6 +116,16 @@ const DocumentViewer = ({
     }
   };
 
+  // Create visualization selector component
+  const visualizationSelector = visualizations && visualizations.length > 0 ? (
+    <ViewSelector
+      visualizations={visualizations}
+      activeVisualization={activeVisualization}
+      onChange={handleVisualizationChange}
+      size="small"
+    />
+  ) : null;
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <TabHeader
@@ -122,17 +133,8 @@ const DocumentViewer = ({
         status={artifact?.status}
         lastModified={artifact?.lastModified}
         actions={headerActions}
+        visualizationSelector={visualizationSelector}
       />
-      
-      {visualizations && visualizations.length > 0 && (
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, py: 1 }}>
-          <ViewSelector
-            visualizations={visualizations}
-            activeVisualization={activeVisualization}
-            onChange={handleVisualizationChange}
-          />
-        </Box>
-      )}
       
       <SplitView
         direction={layoutMode === 'horizontal' ? 'horizontal' : 'vertical'}
@@ -182,8 +184,7 @@ DocumentViewer.propTypes = {
   visualizations: PropTypes.array,
   isEditable: PropTypes.bool,
   onVisualizationChange: PropTypes.func,
-  onContentUpdate: PropTypes.func,
-  layoutMode: PropTypes.oneOf(['single', 'vertical', 'horizontal'])
+  onContentUpdate: PropTypes.func
 };
 
 export default DocumentViewer; 

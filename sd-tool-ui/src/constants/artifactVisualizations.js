@@ -12,7 +12,7 @@ export const ARTIFACT_VISUALIZATIONS = {
   // Document-based artifacts
   [ARTIFACT_TYPES.FUNCTIONAL_SPECIFICATION]: [
     { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View', isDefault: true },
-    { type: VISUALIZATION_TYPES.TABLE, subtype: 'requirements', label: 'Requirements Table' }
+    { type: VISUALIZATION_TYPES.TABLE, label: 'Requirements Table' }
   ],
   
   [ARTIFACT_TYPES.BUSINESS_REQUIREMENTS_SPEC]: [
@@ -21,7 +21,13 @@ export const ARTIFACT_VISUALIZATIONS = {
   ],
   
   [ARTIFACT_TYPES.SYSTEM_ARCHITECTURE_DOCUMENT]: [
-    { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View', isDefault: true }
+    { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View', isDefault: true },
+    { type: VISUALIZATION_TYPES.DIAGRAM, label: 'Architecture Diagram' }
+  ],
+  
+  [ARTIFACT_TYPES.TECHNICAL_DESIGN_DOCUMENT]: [
+    { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View', isDefault: true },
+    { type: VISUALIZATION_TYPES.DIAGRAM, label: 'Design Diagram' }
   ],
   
   [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS_SPEC]: [
@@ -31,11 +37,13 @@ export const ARTIFACT_VISUALIZATIONS = {
   
   // Table-based artifacts
   [ARTIFACT_TYPES.DATA_DICTIONARY]: [
-    { type: VISUALIZATION_TYPES.TABLE, subtype: 'dictionary', label: 'Data Dictionary', isDefault: true }
+    { type: VISUALIZATION_TYPES.TABLE, label: 'Data Dictionary Table', isDefault: true },
+    { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View' }
   ],
   
   [ARTIFACT_TYPES.TEST_CASES_SPECIFICATION]: [
-    { type: VISUALIZATION_TYPES.TABLE, subtype: 'testcases', label: 'Test Cases', isDefault: true }
+    { type: VISUALIZATION_TYPES.TABLE, label: 'Test Cases Table', isDefault: true },
+    { type: VISUALIZATION_TYPES.DOCUMENT, label: 'Document View' }
   ],
   
   [ARTIFACT_TYPES.TEST_DATA]: [
@@ -90,8 +98,7 @@ export const ARTIFACT_VISUALIZATIONS = {
  */
 export const getDefaultVisualization = (artifactType) => {
   const visualizations = ARTIFACT_VISUALIZATIONS[artifactType] || [];
-  const defaultViz = visualizations.find(v => v.isDefault);
-  return defaultViz || visualizations[0] || null;
+  return visualizations.find(v => v.isDefault) || visualizations[0] || null;
 };
 
 /**
@@ -101,10 +108,7 @@ export const getDefaultVisualization = (artifactType) => {
  * @param {string} [subtype] - Optional visualization subtype
  * @return {boolean} True if valid
  */
-export const isValidVisualization = (artifactType, visualizationType, subtype = null) => {
+export const isValidVisualization = (artifactType, visualizationType) => {
   const visualizations = ARTIFACT_VISUALIZATIONS[artifactType] || [];
-  return visualizations.some(v => 
-    v.type === visualizationType && 
-    (subtype === null || v.subtype === subtype)
-  );
+  return visualizations.some(v => v.type === visualizationType);
 }; 

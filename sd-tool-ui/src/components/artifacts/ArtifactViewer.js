@@ -6,7 +6,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
 import { useWorkspaceLayout } from '../../contexts/WorkspaceLayoutContext';
 import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
-import { getDefaultVisualization } from '../../constants/artifactVisualizations';
+import { getDefaultVisualization, ARTIFACT_VISUALIZATIONS } from '../../constants/artifactVisualizations';
 
 // Import specific viewers
 import DocumentViewer from './DocumentViewer';
@@ -124,8 +124,8 @@ const ArtifactViewer = () => {
     );
   }
   
-  // Get visualizations for this artifact type
-  const visualizations = activeArtifact.visualizations || [];
+  // Get visualizations for this artifact type from constants
+  const visualizations = ARTIFACT_VISUALIZATIONS[activeArtifact.art_type] || [];
   
   // Determine which viewer to use based on artifact type
   switch (activeArtifact.art_type) {
