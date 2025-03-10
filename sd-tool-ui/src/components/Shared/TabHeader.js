@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Box, Typography, Chip, IconButton, Tooltip, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { formatDistanceToNow } from 'date-fns';
 import { formatDate } from '../../utils/dateUtils';
 
 /**
@@ -29,16 +28,22 @@ const TabHeader = ({
     setAnchorEl(null);
   };
   
-  const handleActionClick = (actionId) => {
-    if (onActionClick) {
-      onActionClick(actionId);
+  const handleActionClick = (action) => {
+    // First try to use the action's direct onClick handler
+    if (action.onClick) {
+      action.onClick();
+    } 
+    // Fall back to the onActionClick prop if provided
+    else if (onActionClick) {
+      onActionClick(action.id);
     }
+    
     handleMenuClose();
   };
   
   // Format the last modified date if provided
   const formattedDate = lastModified 
-    ? formatDistanceToNow(new Date(lastModified), { addSuffix: true }) 
+    ? formatDate(lastModified)
     : 'unknown';
   
   // Define status colors
@@ -79,7 +84,7 @@ const TabHeader = ({
           
           {lastModified && (
             <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
-              Last modified: {formatDate(lastModified)}
+              Last modified: {formattedDate}
             </Typography>
           )}
         </Box>
@@ -98,7 +103,8 @@ const TabHeader = ({
               <IconButton 
                 color="primary" 
                 size="small"
-                onClick={() => handleActionClick(action.id)}
+                onClick={() => handleActionClick(action)}
+                disabled={action.disabled}
               >
                 {action.icon}
               </IconButton>
@@ -126,7 +132,8 @@ const TabHeader = ({
                 {actions.slice(3).map(action => (
                   <MenuItem 
                     key={action.id} 
-                    onClick={() => handleActionClick(action.id)}
+                    onClick={() => handleActionClick(action)}
+                    disabled={action.disabled}
                   >
                     {action.icon && (
                       <Box component="span" sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
@@ -169,7 +176,9 @@ TabHeader.propTypes = {
   actions: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    icon: PropTypes.node
+    icon: PropTypes.node,
+    onClick: PropTypes.func,
+    disabled: PropTypes.bool
   })),
   onActionClick: PropTypes.func,
   visualizationSelector: PropTypes.node

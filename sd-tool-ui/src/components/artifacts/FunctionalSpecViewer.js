@@ -77,9 +77,10 @@ const FunctionalSpecViewer = ({
       sections: Object.keys(artifact?.content || {}),
       layoutMode,
       activeVisualization,
-      viewMode
+      viewMode,
+      isEditing
     });
-  }, [artifact?.document_id, layoutMode, activeVisualization, viewMode]);
+  }, [artifact?.document_id, layoutMode, activeVisualization, viewMode, isEditing]);
   
   // Set view mode based on active visualization
   useEffect(() => {
@@ -143,6 +144,7 @@ const FunctionalSpecViewer = ({
 
   // Handle content change from editor
   const handleContentChange = (newContent) => {
+    console.log('Content changed:', newContent);
     setContent({
       ...content,
       [activeSection]: newContent
@@ -158,6 +160,7 @@ const FunctionalSpecViewer = ({
         functions: functions
       };
       
+      console.log('Saving content:', updatedContent);
       onContentUpdate(updatedContent);
       setIsEditing(false);
     }
@@ -201,14 +204,20 @@ const FunctionalSpecViewer = ({
     setFunctions(functions.filter(f => f.id !== id));
   };
 
+  // Toggle edit mode
+  const toggleEditMode = () => {
+    console.log('Toggling edit mode from', isEditing, 'to', !isEditing);
+    setIsEditing(!isEditing);
+  };
+
   // Prepare header actions
   const headerActions = [
     {
       id: 'edit',
       label: isEditing ? 'View' : 'Edit',
       icon: isEditing ? <VisibilityIcon /> : <EditIcon />,
-      onClick: () => setIsEditing(!isEditing),
-      disabled: false
+      onClick: toggleEditMode,
+      disabled: !isEditable
     },
     {
       id: 'save',
@@ -311,10 +320,12 @@ const FunctionalSpecViewer = ({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}>
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6">Functional Requirements</Typography>
+        
         {isEditing && (
           <Button 
+            startIcon={<AddIcon />} 
             variant="contained" 
-            startIcon={<AddIcon />}
+            color="primary"
             onClick={() => handleOpenFunctionDialog()}
           >
             Add Function
@@ -418,7 +429,7 @@ const FunctionalSpecViewer = ({
   );
 
   // Debug which view is being rendered
-  console.log('Rendering view mode:', viewMode);
+  console.log('Rendering view mode:', viewMode, 'isEditing:', isEditing);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
