@@ -4,7 +4,7 @@ import {
   Box, Paper, Tabs, Tab, Divider, IconButton, Tooltip, 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-  FormControl, InputLabel, Select, MenuItem, Typography
+  FormControl, InputLabel, Select, MenuItem, Typography, Chip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -21,6 +21,11 @@ import MarkdownEditor from '../shared/MarkdownEditor';
 import MDEditor from '@uiw/react-md-editor';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useWorkspaceLayout } from '../../contexts/WorkspaceLayoutContext';
+import { 
+  validateFunctions, 
+  parseMarkdownTableToFunctions, 
+  generateFunctionsMarkdownTable 
+} from '../../schemas/functionSchema';
 
 // Import constants directly instead of importing the whole file
 const VISUALIZATION_TYPES = {
@@ -34,10 +39,14 @@ const VISUALIZATION_TYPES = {
 
 const INITIAL_SECTIONS = [
   { id: 'overview', label: 'Overview', content: '# Overview\n\nProvide a high-level overview of the functionality.' },
+  { id: 'scope', label: 'Scope', content: '# Scope\n\n## In Scope\n\n- Feature 1\n- Feature 2\n\n## Out of Scope\n\n- Feature 3\n- Feature 4' },
   { id: 'requirements', label: 'Requirements', content: '# Requirements\n\n## Functional Requirements\n\n- Requirement 1\n- Requirement 2\n\n## Non-Functional Requirements\n\n- Performance\n- Security' },
-  { id: 'design', label: 'Design', content: '# Design\n\nDescribe the design approach for implementing this functionality.' },
-  { id: 'interfaces', label: 'Interfaces', content: '# Interfaces\n\n## User Interfaces\n\n## API Interfaces' },
-  { id: 'data', label: 'Data Models', content: '# Data Models\n\nDescribe key data structures and relationships.' }
+  { id: 'useCases', label: 'Use Cases', content: '# Use Cases\n\n## UC1: User Registration\n\n**Actor**: New User\n\n**Steps**:\n1. User navigates to registration page\n2. User enters details\n3. System validates information\n4. System creates account\n\n**Alternate Flows**:\n- If validation fails, show error message' },
+  { id: 'userRoles', label: 'User Roles', content: '# User Roles\n\n## Admin\n\nCan manage all aspects of the system.\n\n## Regular User\n\nCan perform standard operations.' },
+  { id: 'interfaces', label: 'Interfaces', content: '# Interfaces\n\n## User Interfaces\n\n- Login Screen\n- Dashboard\n\n## API Interfaces\n\n- Authentication API\n- Data Retrieval API' },
+  { id: 'dataModels', label: 'Data Models', content: '# Data Models\n\nDescribe key data structures and relationships.' },
+  { id: 'businessRules', label: 'Business Rules', content: '# Business Rules\n\n1. Users must verify email before accessing the system\n2. Orders over $1000 require manager approval' },
+  { id: 'assumptions', label: 'Assumptions', content: '# Assumptions and Dependencies\n\n## Assumptions\n\n- Users have internet access\n- System will handle up to 1000 concurrent users\n\n## Dependencies\n\n- Payment gateway integration\n- Email service' }
 ];
 
 // Sample initial functions for the table view
@@ -142,66 +151,96 @@ const FunctionalSpecViewer = ({
   const currentSection = sections.find(s => s.id === activeSection);
   const currentContent = content[activeSection] || currentSection?.content || '';
 
+  // Function to update markdown content when table data changes
+  const updateMarkdownFromTable = (newFunctions) => {
+    const validation = validateFunctions(newFunctions);
+    if (!validation.success) {
+      console.error('Invalid functions data:', validation.errors);
+      return;
+    }
+
+    const markdownTable = generateFunctionsMarkdownTable(newFunctions);
+    
+    // Get the current requirements section content
+    const currentContent = content[activeSection] || '';
+    
+    // Find the functions table section and replace it
+    const newContent = currentContent.replace(
+      /## Functions List\n\|[\s\S]*?\n\n/m, // Regex to match the existing table
+      markdownTable
+    );
+
+    // If no existing table was found, append the new table
+    if (newContent === currentContent) {
+      setContent(prev => ({
+        ...prev,
+        requirements: `${currentContent}\n\n${markdownTable}`
+      }));
+    } else {
+      setContent(prev => ({
+        ...prev,
+        requirements: newContent
+      }));
+    }
+  };
+
+  // Function to update table when markdown content changes
+  const updateTableFromMarkdown = (newContent) => {
+    // Only process if we're in the requirements section
+    if (activeSection === 'requirements') {
+      const result = parseMarkdownTableToFunctions(newContent);
+      if (result.success) {
+        setFunctions(result.data);
+      } else {
+        console.warn('Failed to parse functions from markdown:', result.error);
+      }
+    }
+  };
+
   // Handle content change from editor
   const handleContentChange = (newContent) => {
-    console.log('Content changed:', newContent);
+    console.log('Content changed in section:', activeSection);
     setContent({
       ...content,
       [activeSection]: newContent
     });
+
+    // Try to update table if markdown changed
+    updateTableFromMarkdown(newContent);
   };
 
-  // Handle save
-  const handleSave = () => {
-    if (onContentUpdate) {
-      const updatedContent = {
-        sections: sections,
-        sectionContent: content,
-        functions: functions
-      };
-      
-      console.log('Saving content:', updatedContent);
-      onContentUpdate(updatedContent);
-      setIsEditing(false);
-    }
+  // Handle function changes in table view
+  const handleFunctionChange = (newFunctions) => {
+    console.log('Functions changed in table view');
+    setFunctions(newFunctions);
+    updateMarkdownFromTable(newFunctions);
   };
 
-  // Handle function dialog open
-  const handleOpenFunctionDialog = (func = null) => {
-    if (func) {
-      setCurrentFunction(func);
-    } else {
-      // Generate a new ID for the function
-      const newId = `F${String(functions.length + 1).padStart(3, '0')}`;
-      setCurrentFunction({ id: newId, module: '', name: '', screen: '', detail: '' });
-    }
-    setFunctionDialogOpen(true);
-  };
-
-  // Handle function save
+  // Handle adding a new function
   const handleSaveFunction = () => {
     if (!currentFunction) return;
     
+    let updatedFunctions;
     if (currentFunction.id) {
       // Update existing function
-      const existingIndex = functions.findIndex(f => f.id === currentFunction.id);
-      if (existingIndex >= 0) {
-        const updatedFunctions = [...functions];
-        updatedFunctions[existingIndex] = currentFunction;
-        setFunctions(updatedFunctions);
-      } else {
-        // Add new function
-        setFunctions([...functions, currentFunction]);
-      }
+      updatedFunctions = functions.map(f => 
+        f.id === currentFunction.id ? currentFunction : f
+      );
+    } else {
+      // Add new function
+      const newId = `F${String(functions.length + 1).padStart(3, '0')}`;
+      updatedFunctions = [...functions, { ...currentFunction, id: newId }];
     }
     
+    handleFunctionChange(updatedFunctions);
     setFunctionDialogOpen(false);
     setCurrentFunction(null);
   };
 
-  // Handle function delete
+  // Handle deleting a function
   const handleDeleteFunction = (id) => {
-    setFunctions(functions.filter(f => f.id !== id));
+    const updatedFunctions = functions.filter(f => f.id !== id);
+    handleFunctionChange(updatedFunctions);
   };
 
   // Toggle edit mode
@@ -223,7 +262,19 @@ const FunctionalSpecViewer = ({
       id: 'save',
       label: 'Save',
       icon: <SaveIcon />,
-      onClick: handleSave,
+      onClick: () => {
+        if (onContentUpdate) {
+          const updatedContent = {
+            sections: sections,
+            sectionContent: content,
+            functions: functions
+          };
+          
+          console.log('Saving content:', updatedContent);
+          onContentUpdate(updatedContent);
+          setIsEditing(false);
+        }
+      },
       disabled: !isEditing
     },
     {
@@ -303,7 +354,19 @@ const FunctionalSpecViewer = ({
                   : section
               ));
             }}
-            onSave={handleSave}
+            onSave={() => {
+              if (onContentUpdate) {
+                const updatedContent = {
+                  sections: sections,
+                  sectionContent: content,
+                  functions: functions
+                };
+                
+                console.log('Saving content:', updatedContent);
+                onContentUpdate(updatedContent);
+                setIsEditing(false);
+              }
+            }}
             artifactId={artifact?.id}
           />
         ) : (
@@ -317,31 +380,40 @@ const FunctionalSpecViewer = ({
 
   // Render table view
   const renderTableView = () => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">Functional Requirements</Typography>
-        
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
         {isEditing && (
-          <Button 
-            startIcon={<AddIcon />} 
-            variant="contained" 
-            color="primary"
-            onClick={() => handleOpenFunctionDialog()}
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setCurrentFunction({
+                module: '',
+                name: '',
+                screen: '',
+                detail: '',
+                status: 'planned',
+                priority: 'medium'
+              });
+              setFunctionDialogOpen(true);
+            }}
           >
             Add Function
           </Button>
         )}
       </Box>
-      
-      <TableContainer component={Paper} sx={{ flex: 1, overflow: 'auto' }}>
-        <Table stickyHeader>
+
+      <TableContainer component={Paper}>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Module</TableCell>
-              <TableCell>Function Name</TableCell>
+              <TableCell>Name</TableCell>
               <TableCell>Screen</TableCell>
               <TableCell>Detail</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Priority</TableCell>
               {isEditing && <TableCell>Actions</TableCell>}
             </TableRow>
           </TableHead>
@@ -353,14 +425,49 @@ const FunctionalSpecViewer = ({
                 <TableCell>{func.name}</TableCell>
                 <TableCell>{func.screen}</TableCell>
                 <TableCell>{func.detail}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={func.status} 
+                    size="small"
+                    color={
+                      func.status === 'completed' ? 'success' :
+                      func.status === 'in-progress' ? 'primary' :
+                      func.status === 'on-hold' ? 'warning' :
+                      'default'
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={func.priority}
+                    size="small"
+                    color={
+                      func.priority === 'critical' ? 'error' :
+                      func.priority === 'high' ? 'warning' :
+                      func.priority === 'medium' ? 'info' :
+                      'default'
+                    }
+                  />
+                </TableCell>
                 {isEditing && (
                   <TableCell>
-                    <IconButton size="small" onClick={() => handleOpenFunctionDialog(func)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDeleteFunction(func.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setCurrentFunction(func);
+                          setFunctionDialogOpen(true);
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteFunction(func.id)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 )}
               </TableRow>
@@ -368,61 +475,98 @@ const FunctionalSpecViewer = ({
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       {/* Function Edit Dialog */}
-      <Dialog open={functionDialogOpen} onClose={() => setFunctionDialogOpen(false)}>
+      <Dialog 
+        open={functionDialogOpen} 
+        onClose={() => setFunctionDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           {currentFunction?.id ? `Edit Function ${currentFunction.id}` : 'Add New Function'}
         </DialogTitle>
         <DialogContent>
-          <TextField
-            margin="dense"
-            label="ID"
-            fullWidth
-            value={currentFunction?.id || ''}
-            onChange={(e) => setCurrentFunction({...currentFunction, id: e.target.value})}
-            disabled={!!currentFunction?.id} // Disable editing ID for existing functions
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Module</InputLabel>
-            <Select
-              value={currentFunction?.module || ''}
-              onChange={(e) => setCurrentFunction({...currentFunction, module: e.target.value})}
-            >
-              <MenuItem value="Authentication">Authentication</MenuItem>
-              <MenuItem value="Dashboard">Dashboard</MenuItem>
-              <MenuItem value="User Management">User Management</MenuItem>
-              <MenuItem value="Reporting">Reporting</MenuItem>
-              <MenuItem value="Settings">Settings</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Function Name"
-            fullWidth
-            value={currentFunction?.name || ''}
-            onChange={(e) => setCurrentFunction({...currentFunction, name: e.target.value})}
-          />
-          <TextField
-            margin="dense"
-            label="Screen"
-            fullWidth
-            value={currentFunction?.screen || ''}
-            onChange={(e) => setCurrentFunction({...currentFunction, screen: e.target.value})}
-          />
-          <TextField
-            margin="dense"
-            label="Detail"
-            fullWidth
-            multiline
-            rows={4}
-            value={currentFunction?.detail || ''}
-            onChange={(e) => setCurrentFunction({...currentFunction, detail: e.target.value})}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            {currentFunction?.id && (
+              <TextField
+                label="ID"
+                fullWidth
+                value={currentFunction?.id || ''}
+                disabled
+              />
+            )}
+            <FormControl fullWidth>
+              <InputLabel>Module</InputLabel>
+              <Select
+                value={currentFunction?.module || ''}
+                onChange={(e) => setCurrentFunction({...currentFunction, module: e.target.value})}
+                label="Module"
+              >
+                <MenuItem value="Authentication">Authentication</MenuItem>
+                <MenuItem value="Dashboard">Dashboard</MenuItem>
+                <MenuItem value="User Management">User Management</MenuItem>
+                <MenuItem value="Reporting">Reporting</MenuItem>
+                <MenuItem value="Settings">Settings</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Function Name"
+              fullWidth
+              value={currentFunction?.name || ''}
+              onChange={(e) => setCurrentFunction({...currentFunction, name: e.target.value})}
+            />
+            <TextField
+              label="Screen"
+              fullWidth
+              value={currentFunction?.screen || ''}
+              onChange={(e) => setCurrentFunction({...currentFunction, screen: e.target.value})}
+            />
+            <TextField
+              label="Detail"
+              fullWidth
+              multiline
+              rows={4}
+              value={currentFunction?.detail || ''}
+              onChange={(e) => setCurrentFunction({...currentFunction, detail: e.target.value})}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={currentFunction?.status || 'planned'}
+                onChange={(e) => setCurrentFunction({...currentFunction, status: e.target.value})}
+                label="Status"
+              >
+                <MenuItem value="planned">Planned</MenuItem>
+                <MenuItem value="in-progress">In Progress</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="on-hold">On Hold</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={currentFunction?.priority || 'medium'}
+                onChange={(e) => setCurrentFunction({...currentFunction, priority: e.target.value})}
+                label="Priority"
+              >
+                <MenuItem value="critical">Critical</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="low">Low</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setFunctionDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveFunction} variant="contained">Save</Button>
+          <Button 
+            onClick={handleSaveFunction} 
+            variant="contained"
+            disabled={!currentFunction?.module || !currentFunction?.name}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
