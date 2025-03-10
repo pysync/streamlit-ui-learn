@@ -13,6 +13,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  List,
+  ListItem,
+  ListItemText,
   Divider
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,6 +32,7 @@ import RelatedItemsPanel from '../../shared/RelatedItemsPanel';
 import { useWorkspace } from '../../../contexts/WorkspaceContext';
 import { ARTIFACT_SCHEMAS } from '../../../constants/artifactSchemas';
 import { ARTIFACT_TYPES } from '../../../constants/sdlcConstants';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 /**
  * Specialized viewer for API Specification artifacts
@@ -152,6 +156,22 @@ const ApiSpecificationViewer = ({
     setIsEditing(false);
   };
   
+  // Create header actions array for TabHeader
+  const headerActions = [
+    {
+      icon: isEditing ? <SaveIcon /> : <EditIcon />,
+      tooltip: isEditing ? "Save" : "Edit",
+      onClick: isEditing ? handleSave : toggleEditMode,
+      disabled: !isEditable
+    },
+    {
+      icon: <VisibilityIcon />,
+      tooltip: "View",
+      onClick: () => {},
+      disabled: isEditing
+    }
+  ];
+  
   // Related items panel for secondary content
   const secondaryContent = artifact?.references?.length > 0 ? (
     <RelatedItemsPanel 
@@ -165,46 +185,35 @@ const ApiSpecificationViewer = ({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <TabHeader
         title={artifact?.title || 'API Specification'}
-        actions={
-          <>
-            {isEditable && (
-              <Tooltip title={isEditing ? "Save" : "Edit"}>
-                <IconButton onClick={isEditing ? handleSave : toggleEditMode}>
-                  {isEditing ? <SaveIcon /> : <EditIcon />}
-                </IconButton>
-              </Tooltip>
-            )}
-            {!isEditing && (
-              <Tooltip title="View">
-                <IconButton>
-                  <VisibilityIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </>
-        }
+        actions={headerActions}
       />
       
       <SplitView
         direction={layoutMode === 'horizontal' ? 'horizontal' : 'vertical'}
         primaryContent={
-          <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tab label="Documentation" />
-              <Tab label="Endpoints" />
-              <Tab label="Schema" />
-            </Tabs>
+          <Box sx={{ 
+            p: 0, 
+            height: '100%', 
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={activeTab} onChange={handleTabChange}>
+                <Tab label="Documentation" icon={<DescriptionIcon />} iconPosition="start" />
+                <Tab label="Endpoints" icon={<HttpIcon />} iconPosition="start" />
+                <Tab label="Schema" icon={<CodeIcon />} iconPosition="start" />
+              </Tabs>
+            </Box>
             
             {/* Documentation view */}
             {activeTab === 0 && (
-              <Box sx={{ display: 'flex', height: '100%' }}>
-                {/* Section navigation */}
+              <Box sx={{ display: 'flex', height: 'calc(100% - 48px)' }}>
                 <Box sx={{ width: 200, borderRight: 1, borderColor: 'divider', overflow: 'auto' }}>
                   <List component="nav">
                     {sections.map((section) => (
                       <ListItem 
+                        button 
                         key={section.id}
-                        button
                         selected={activeSection === section.id}
                         onClick={() => handleSectionChange(section.id)}
                       >
@@ -214,15 +223,17 @@ const ApiSpecificationViewer = ({
                   </List>
                 </Box>
                 
-                {/* Content area */}
                 <Box sx={{ flexGrow: 1, p: 2, overflow: 'auto' }}>
                   {activeSection && (
                     <>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                        {sections.find(s => s.id === activeSection)?.label || 'Content'}
+                      </Typography>
+                      
                       {isEditing ? (
                         <MarkdownEditor
                           value={content[activeSection] || ''}
                           onChange={(newContent) => handleContentChange(activeSection, newContent)}
-                          onSave={handleSave}
                         />
                       ) : (
                         <MarkdownViewer content={content[activeSection] || ''} />

@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ARTIFACT_TYPES } from '../../constants/sdlcConstants';
 
+// Import adapters
+import { getDocumentAdapter } from './adapters/documentAdapters';
+import { getDiagramAdapter } from './adapters/diagramAdapters';
+import { getTableAdapter } from './adapters/tableAdapters';
+
 // Lazy load base viewers
 const DocumentViewer = React.lazy(() => import('./base/DocumentViewer'));
 const TableViewer = React.lazy(() => import('./base/TableViewer'));
@@ -11,26 +16,17 @@ const KanbanViewer = React.lazy(() => import('./base/KanbanViewer'));
 const GanttViewer = React.lazy(() => import('./base/GanttViewer'));
 
 // Lazy load specialized viewers
+const ProjectCharterViewer = React.lazy(() => import('./specialized/ProjectCharterViewer'));
 const RequirementsViewer = React.lazy(() => import('./specialized/RequirementsViewer'));
 const ApiSpecificationViewer = React.lazy(() => import('./specialized/ApiSpecificationViewer'));
 const SystemArchitectureViewer = React.lazy(() => import('./specialized/SystemArchitectureViewer'));
-const ProjectCharterViewer = React.lazy(() => import('./specialized/ProjectCharterViewer'));
+const DatabaseDesignViewer = React.lazy(() => import('./specialized/DatabaseDesignViewer'));
+const UserStoriesViewer = React.lazy(() => import('./specialized/UserStoriesViewer'));
 
-// Import adapters
-import { getTableAdapter } from './adapters/tableAdapters';
-import { getDiagramAdapter } from './adapters/diagramAdapters';
-import { 
-  projectCharterAdapter,
-  businessRequirementsAdapter,
-  functionalRequirementsAdapter,
-  technicalDesignAdapter,
-  testPlanAdapter,
-  userManualAdapter
-} from './adapters/documentAdapters';
+
 
 /**
- * Factory component that selects and renders the appropriate artifact viewer
- * based on the artifact type and visualization
+ * Factory component that renders the appropriate artifact viewer based on artifact type and visualization
  */
 const ArtifactRendererFactory = ({
   artifact,
@@ -43,15 +39,15 @@ const ArtifactRendererFactory = ({
 }) => {
   if (!artifact) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          No artifact selected
+          No artifact to display
         </Typography>
       </Box>
     );
   }
 
-  // Determine which viewer to use based on artifact type and visualization
+  // Determine which viewer to use
   const getViewer = () => {
     // If visualization specifies a viewer, use that
     if (visualization?.viewer) {
@@ -63,47 +59,40 @@ const ArtifactRendererFactory = ({
       // Document-based artifacts
       case ARTIFACT_TYPES.PROJECT_CHARTER:
         return 'projectCharter';
-      
-      // Requirements use specialized viewer
       case ARTIFACT_TYPES.BUSINESS_REQUIREMENTS:
       case ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS:
+      case ARTIFACT_TYPES.TECHNICAL_REQUIREMENTS:
         return 'requirements';
-      
-      // System architecture uses specialized viewer
+      case ARTIFACT_TYPES.API_SPECIFICATION:
+        return 'apiSpecification';
       case ARTIFACT_TYPES.SYSTEM_ARCHITECTURE:
         return 'systemArchitecture';
+      case ARTIFACT_TYPES.DATABASE_DESIGN:
+        return 'databaseDesign';
+      case ARTIFACT_TYPES.USER_STORIES:
+        return 'userStories';
       
-      case ARTIFACT_TYPES.TECHNICAL_DESIGN:
-      case ARTIFACT_TYPES.TEST_PLAN:
-      case ARTIFACT_TYPES.USER_MANUAL:
-        return 'document';
+      // Diagram-based artifacts
+      case ARTIFACT_TYPES.USE_CASE_DIAGRAM:
+      case ARTIFACT_TYPES.CLASS_DIAGRAM:
+      case ARTIFACT_TYPES.SEQUENCE_DIAGRAM:
+      case ARTIFACT_TYPES.ACTIVITY_DIAGRAM:
+      case ARTIFACT_TYPES.COMPONENT_DIAGRAM:
+      case ARTIFACT_TYPES.DEPLOYMENT_DIAGRAM:
+      case ARTIFACT_TYPES.ER_DIAGRAM:
+        return 'diagram';
       
       // Table-based artifacts
       case ARTIFACT_TYPES.TEST_CASES:
-      case ARTIFACT_TYPES.DEFECT_REPORT:
       case ARTIFACT_TYPES.RISK_REGISTER:
+      case ARTIFACT_TYPES.ISSUE_LOG:
         return 'table';
       
-      // Diagram-based artifacts
-      case ARTIFACT_TYPES.DATABASE_DESIGN:
-      case ARTIFACT_TYPES.DEPLOYMENT_DIAGRAM:
-      case ARTIFACT_TYPES.SEQUENCE_DIAGRAM:
-      case ARTIFACT_TYPES.CLASS_DIAGRAM:
-        return 'diagram';
-      
-      // Timeline-based artifacts
-      case ARTIFACT_TYPES.PROJECT_PLAN:
-      case ARTIFACT_TYPES.RELEASE_PLAN:
-        return 'gantt';
-      
-      // API-based artifacts
-      case ARTIFACT_TYPES.API_SPECIFICATION:
-        return 'apiSpecification';
-      
-      // Board-based artifacts
-      case ARTIFACT_TYPES.USER_STORIES:
-      case ARTIFACT_TYPES.TASK_BOARD:
+      // Special artifacts
+      case ARTIFACT_TYPES.KANBAN_BOARD:
         return 'kanban';
+      case ARTIFACT_TYPES.PROJECT_SCHEDULE:
+        return 'gantt';
       
       // Default to document viewer
       default:
@@ -111,64 +100,50 @@ const ArtifactRendererFactory = ({
     }
   };
 
-  // Apply the appropriate adapter to transform the artifact content
-  const getAdaptedContent = () => {
-    const viewer = getViewer();
-    let adaptedArtifact = { ...artifact };
-    
-    switch (viewer) {
-      case 'table':
-        const tableAdapter = getTableAdapter(artifact.art_type);
-        adaptedArtifact.content = tableAdapter(artifact);
-        break;
+  // Get the appropriate adapter for the artifact type
+  const getAdapter = () => {
+    switch (artifact.art_type) {
+      // Document-based artifacts
+      case ARTIFACT_TYPES.PROJECT_CHARTER:
+      case ARTIFACT_TYPES.BUSINESS_REQUIREMENTS:
+      case ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS:
+      case ARTIFACT_TYPES.TECHNICAL_REQUIREMENTS:
+      case ARTIFACT_TYPES.TECHNICAL_DESIGN:
+      case ARTIFACT_TYPES.TEST_PLAN:
+      case ARTIFACT_TYPES.USER_MANUAL:
+        return getDocumentAdapter(artifact.art_type);
       
-      case 'diagram':
-        const diagramAdapter = getDiagramAdapter(artifact.art_type);
-        adaptedArtifact.content = diagramAdapter(artifact);
-        break;
+      // Diagram-based artifacts
+      case ARTIFACT_TYPES.USE_CASE_DIAGRAM:
+      case ARTIFACT_TYPES.CLASS_DIAGRAM:
+      case ARTIFACT_TYPES.SEQUENCE_DIAGRAM:
+      case ARTIFACT_TYPES.ACTIVITY_DIAGRAM:
+      case ARTIFACT_TYPES.COMPONENT_DIAGRAM:
+      case ARTIFACT_TYPES.DEPLOYMENT_DIAGRAM:
+      case ARTIFACT_TYPES.ER_DIAGRAM:
+        return getDiagramAdapter(artifact.art_type);
       
-      case 'document':
-        // Apply document adapters based on artifact type
-        switch (artifact.art_type) {
-          case ARTIFACT_TYPES.PROJECT_CHARTER:
-            adaptedArtifact.content = projectCharterAdapter(artifact);
-            break;
-          case ARTIFACT_TYPES.BUSINESS_REQUIREMENTS:
-            adaptedArtifact.content = businessRequirementsAdapter(artifact);
-            break;
-          case ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS:
-            adaptedArtifact.content = functionalRequirementsAdapter(artifact);
-            break;
-          case ARTIFACT_TYPES.TECHNICAL_DESIGN:
-            adaptedArtifact.content = technicalDesignAdapter(artifact);
-            break;
-          case ARTIFACT_TYPES.TEST_PLAN:
-            adaptedArtifact.content = testPlanAdapter(artifact);
-            break;
-          case ARTIFACT_TYPES.USER_MANUAL:
-            adaptedArtifact.content = userManualAdapter(artifact);
-            break;
-          default:
-            // No adapter needed
-            break;
-        }
-        break;
+      // Table-based artifacts
+      case ARTIFACT_TYPES.TEST_CASES:
+      case ARTIFACT_TYPES.RISK_REGISTER:
+      case ARTIFACT_TYPES.ISSUE_LOG:
+        return getTableAdapter(artifact.art_type);
       
+      // Default to no adapter (pass through)
       default:
-        // No adapter needed for specialized viewers
-        break;
+        return (a) => a;
     }
-    
-    return adaptedArtifact;
   };
 
-  // Get the adapted artifact
-  const adaptedArtifact = getAdaptedContent();
-  
-  // Render the appropriate viewer with a loading fallback
+  // Apply adapter to artifact
+  const adapter = getAdapter();
+  const adaptedArtifact = adapter ? { ...artifact, content: adapter(artifact) } : artifact;
+
+  // Get the viewer to use
+  const viewer = getViewer();
+
+  // Render the appropriate viewer
   const renderViewer = () => {
-    const viewer = getViewer();
-    
     return (
       <Suspense fallback={
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -187,8 +162,8 @@ const ArtifactRendererFactory = ({
           />
         )}
         
-        {viewer === 'table' && (
-          <TableViewer
+        {viewer === 'diagram' && (
+          <DiagramViewer
             artifact={adaptedArtifact}
             visualization={visualization}
             visualizations={visualizations}
@@ -199,8 +174,8 @@ const ArtifactRendererFactory = ({
           />
         )}
         
-        {viewer === 'diagram' && (
-          <DiagramViewer
+        {viewer === 'table' && (
+          <TableViewer
             artifact={adaptedArtifact}
             visualization={visualization}
             visualizations={visualizations}
@@ -225,6 +200,18 @@ const ArtifactRendererFactory = ({
         
         {viewer === 'gantt' && (
           <GanttViewer
+            artifact={adaptedArtifact}
+            visualization={visualization}
+            visualizations={visualizations}
+            isEditable={isEditable}
+            onContentUpdate={onContentUpdate}
+            onVisualizationChange={onVisualizationChange}
+            layoutMode={layoutMode}
+          />
+        )}
+        
+        {viewer === 'projectCharter' && (
+          <ProjectCharterViewer
             artifact={adaptedArtifact}
             visualization={visualization}
             visualizations={visualizations}
@@ -271,8 +258,20 @@ const ArtifactRendererFactory = ({
           />
         )}
         
-        {viewer === 'projectCharter' && (
-          <ProjectCharterViewer
+        {viewer === 'databaseDesign' && (
+          <DatabaseDesignViewer
+            artifact={adaptedArtifact}
+            visualization={visualization}
+            visualizations={visualizations}
+            isEditable={isEditable}
+            onContentUpdate={onContentUpdate}
+            onVisualizationChange={onVisualizationChange}
+            layoutMode={layoutMode}
+          />
+        )}
+        
+        {viewer === 'userStories' && (
+          <UserStoriesViewer
             artifact={adaptedArtifact}
             visualization={visualization}
             visualizations={visualizations}

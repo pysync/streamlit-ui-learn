@@ -16,52 +16,17 @@ const ArtifactViewer = ({
   isEditable = true,
   layoutMode = 'single'
 }) => {
-  const { getArtifact, updateArtifact, loading, error } = useWorkspace();
-  const [artifact, setArtifact] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState(null);
-
-  // Load artifact data
-  useEffect(() => {
-    const loadArtifact = async () => {
-      if (!artifactId && !documentId) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      try {
-        const result = await getArtifact(artifactId, documentId, artifactType);
-        setArtifact(result);
-      } catch (err) {
-        console.error('Error loading artifact:', err);
-        setErrorMessage(err.message || 'Failed to load artifact');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadArtifact();
-  }, [artifactId, documentId, artifactType, getArtifact]);
+  const { activeArtifact, execUpdateArtifact } = useWorkspace();
 
   // Handle content updates
   const handleContentUpdate = async (updatedContent) => {
-    if (!artifact) return;
+      if (!activeArtifact) return;
 
-    try {
       const updatedArtifact = {
-        ...artifact,
+        ...activeArtifact,
         content: updatedContent
       };
-      
-      await updateArtifact(updatedArtifact);
-      setArtifact(updatedArtifact);
-    } catch (err) {
-      console.error('Error updating artifact:', err);
-      setErrorMessage(err.message || 'Failed to update artifact');
-    }
+      await execUpdateArtifact(updatedArtifact.document_id, updatedArtifact);
   };
 
   // Handle visualization changes
@@ -70,28 +35,9 @@ const ArtifactViewer = ({
     console.log('Visualization changed:', newVisualization);
   };
 
-  // Show loading state
-  if (isLoading || loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // Show error state
-  if (errorMessage || error) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography color="error" variant="h6">
-          {errorMessage || error || 'An error occurred'}
-        </Typography>
-      </Box>
-    );
-  }
-
+ 
   // Show empty state
-  if (!artifact) {
+  if (!activeArtifact) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
@@ -105,7 +51,7 @@ const ArtifactViewer = ({
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <ArtifactRendererFactory
-        artifact={artifact}
+        artifact={activeArtifact}
         visualization={visualization}
         visualizations={visualizations}
         isEditable={isEditable}
