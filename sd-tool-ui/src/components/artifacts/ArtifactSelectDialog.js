@@ -30,7 +30,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { 
   ARTIFACT_TYPE_OPTIONS, 
-  ARTIFACT_TYPE_TO_PHASE, 
+  ARTIFACT_TYPE_PHASES, 
   PHASE_LABELS,
   getArtifactTypeLabel 
 } from '../../constants/sdlcConstants';
@@ -115,7 +115,7 @@ const ArtifactSelectDialog = ({ open, onClose, selectedArtifacts = [], onSelect 
 
   // Add grouping function
   const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
-    const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+    const phase = ARTIFACT_TYPE_PHASES[option.value];
     if (!acc[phase]) {
       acc[phase] = [];
     }

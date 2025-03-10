@@ -25,7 +25,7 @@ import ArtifactVersionsDialog from './ArtifactVersionsDialog';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
 import { useLoading } from '../../contexts/LoadingContext';
 import { useMessage } from '../../contexts/MessageContext';
-import { ARTIFACT_TYPES, getFileExtension, getArtifactTypeLabel, ARTIFACT_TYPE_OPTIONS, ARTIFACT_TYPE_TO_PHASE, PHASE_LABELS } from '../../constants/sdlcConstants';
+import { ARTIFACT_TYPES, getFileExtension, getArtifactTypeLabel, ARTIFACT_TYPE_OPTIONS, ARTIFACT_TYPE_PHASES, PHASE_LABELS } from '../../constants/sdlcConstants';
 import { setArtifactMeta, downloadArtifact } from '../../services/client';
 import { isEqual } from 'lodash'; // For deep comparison of objects
 
@@ -184,7 +184,7 @@ const ArtifactInspector = ({ artifact }) => {
 
   // Add grouping function
   const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
-    const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+    const phase = ARTIFACT_TYPE_PHASES[option.value];
     if (!acc[phase]) {
       acc[phase] = [];
     }

@@ -22,7 +22,7 @@ import { useMessage } from '../../contexts/MessageContext'; // Import Message Co
 import { generateDocumentId } from '../../utils/documentUtils';
 import { 
     ARTIFACT_TYPE_OPTIONS, 
-    ARTIFACT_TYPE_TO_PHASE, 
+    ARTIFACT_TYPE_PHASES, 
     PHASE_LABELS 
 } from '../../constants/sdlcConstants';
 import { v4 as uuidv4 } from 'uuid';
@@ -78,7 +78,7 @@ const CreateArtifactDialog = ({ open, onClose }) => {
 
     // Group options by phase
     const groupedOptions = ARTIFACT_TYPE_OPTIONS.reduce((acc, option) => {
-        const phase = ARTIFACT_TYPE_TO_PHASE[option.value];
+        const phase = ARTIFACT_TYPE_PHASES[option.value];
         if (!acc[phase]) {
             acc[phase] = [];
         }

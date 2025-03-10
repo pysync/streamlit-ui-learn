@@ -18,7 +18,7 @@ import {
   SDLC_PHASES,
   PHASE_LABELS,
   ARTIFACT_TYPE_DESCRIPTIONS,
-  ARTIFACT_TYPE_TO_PHASE,
+  ARTIFACT_TYPE_PHASES,
   getArtifactIcon,
 } from '../../constants/sdlcConstants';
 import { useWorkspace } from '../../contexts/WorkspaceContext';
@@ -60,7 +60,7 @@ const ArtifactGuide = ({ onOpenTypeList, onOpenArtifact }) => {
 
   // Group artifact types by phase
   const groupedArtifacts = React.useMemo(() => {
-    return Object.entries(ARTIFACT_TYPE_TO_PHASE).reduce((acc, [type, phase]) => {
+    return Object.entries(ARTIFACT_TYPE_PHASES).reduce((acc, [type, phase]) => {
       if (!acc[phase]) {
         acc[phase] = [];
       }
