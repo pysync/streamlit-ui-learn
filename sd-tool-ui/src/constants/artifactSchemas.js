@@ -4,7 +4,158 @@ import { ARTIFACT_TYPES } from './sdlcConstants';
  * Data structure schemas for artifact types
  */
 export const ARTIFACT_SCHEMAS = {
-  // Business Requirements Document Schema
+  // Project Charter Schema
+  [ARTIFACT_TYPES.PROJECT_CHARTER]: {
+    title: { type: 'string', required: true },
+    description: { type: 'string' },
+    sections: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          label: { type: 'string', required: true },
+          content: { type: 'string' }
+        }
+      },
+      default: [
+        { id: 'overview', label: 'Overview', content: '# Project Overview\n\nBrief description of the project and its purpose.' },
+        { id: 'vision', label: 'Vision & Goals', content: '# Vision Statement\n\nA clear statement of what the project aims to achieve.\n\n## Project Goals\n\n1. \n2. \n3. ' },
+        { id: 'scope', label: 'Scope', content: '# Project Scope\n\n## In Scope\n\n- \n- \n\n## Out of Scope\n\n- \n- ' },
+        { id: 'stakeholders', label: 'Stakeholders', content: '# Key Stakeholders\n\n| Role | Name | Department | Responsibilities |\n|-----|------|------------|----------------|\n| Project Sponsor | | | |\n| Project Manager | | | |\n| Business Owner | | | |\n| Technical Lead | | | |' },
+        { id: 'timeline', label: 'Timeline', content: '# Project Timeline\n\n| Milestone | Target Date | Deliverables |\n|-----------|-------------|-------------|\n| Project Start | | |\n| Requirements Complete | | |\n| Design Complete | | |\n| Development Complete | | |\n| Testing Complete | | |\n| Project Launch | | |' },
+        { id: 'budget', label: 'Budget', content: '# Budget Summary\n\n| Category | Amount | Notes |\n|----------|--------|-------|\n| Personnel | | |\n| Hardware | | |\n| Software | | |\n| Services | | |\n| Contingency | | |\n| **Total** | | |' },
+        { id: 'risks', label: 'Risks', content: '# Initial Risk Assessment\n\n| Risk | Impact | Probability | Mitigation Strategy |\n|------|--------|------------|---------------------|\n| | | | |' },
+        { id: 'approvals', label: 'Approvals', content: '# Approvals\n\n| Role | Name | Signature | Date |\n|------|------|-----------|------|\n| Project Sponsor | | | |\n| Project Manager | | | |\n| Business Owner | | | |' }
+      ]
+    }
+  },
+
+  // Project Plan Schema
+  [ARTIFACT_TYPES.PROJECT_PLAN]: {
+    title: { type: 'string', required: true },
+    description: { type: 'string' },
+    sections: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          label: { type: 'string', required: true },
+          content: { type: 'string' }
+        }
+      },
+      default: [
+        { id: 'introduction', label: 'Introduction', content: '# Introduction\n\nThis project plan outlines the approach, resources, and timeline for the project.' },
+        { id: 'approach', label: 'Approach', content: '# Project Approach\n\nDescription of the methodology and approach to be used for this project.' },
+        { id: 'organization', label: 'Organization', content: '# Project Organization\n\n## Team Structure\n\n[Describe the team structure]\n\n## Roles and Responsibilities\n\n| Role | Responsibilities | Assigned To |\n|------|-----------------|------------|\n| | | |' },
+        { id: 'communication', label: 'Communication', content: '# Communication Plan\n\n| Stakeholder Group | Information Needs | Frequency | Format | Owner |\n|-------------------|-------------------|-----------|--------|-------|\n| | | | | |' },
+        { id: 'quality', label: 'Quality', content: '# Quality Management\n\n## Quality Objectives\n\n- \n- \n\n## Quality Assurance Approach\n\n[Describe the QA approach]\n\n## Quality Control Measures\n\n- \n- ' }
+      ]
+    },
+    timeline: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'date', required: true },
+        endDate: { type: 'date', required: true },
+        workingDays: { type: 'array', items: { type: 'number' } }
+      },
+      default: {
+        startDate: new Date(),
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
+        workingDays: [1, 2, 3, 4, 5] // Monday to Friday
+      }
+    },
+    phases: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          startDate: { type: 'date', required: true },
+          endDate: { type: 'date', required: true },
+          color: { type: 'string' },
+          description: { type: 'string' },
+          completionPercentage: { type: 'number', default: 0 }
+        }
+      },
+      default: []
+    },
+    tasks: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          phaseId: { type: 'string' },
+          startDate: { type: 'date', required: true },
+          endDate: { type: 'date', required: true },
+          dependencies: { type: 'array', items: { type: 'string' } },
+          assignees: { type: 'array', items: { type: 'string' } },
+          status: { 
+            type: 'string', 
+            enum: ['not_started', 'in_progress', 'completed', 'on_hold'],
+            default: 'not_started'
+          },
+          completionPercentage: { type: 'number', default: 0 },
+          priority: { 
+            type: 'string', 
+            enum: ['low', 'medium', 'high', 'critical'],
+            default: 'medium'
+          },
+          notes: { type: 'string' }
+        }
+      },
+      default: []
+    },
+    milestones: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          date: { type: 'date', required: true },
+          description: { type: 'string' },
+          deliverables: { type: 'array', items: { type: 'string' } },
+          status: { 
+            type: 'string', 
+            enum: ['pending', 'completed', 'at_risk', 'missed'],
+            default: 'pending'
+          }
+        }
+      },
+      default: []
+    },
+    resources: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          role: { type: 'string' },
+          email: { type: 'string' },
+          availability: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                startDate: { type: 'date', required: true },
+                endDate: { type: 'date', required: true },
+                percentage: { type: 'number', default: 100 }
+              }
+            }
+          }
+        }
+      },
+      default: []
+    }
+  },
+
+  // Business Requirements Schema
   [ARTIFACT_TYPES.BUSINESS_REQUIREMENTS]: {
     title: { type: 'string', required: true },
     description: { type: 'string' },
@@ -20,15 +171,38 @@ export const ARTIFACT_SCHEMAS = {
       },
       default: [
         { id: 'overview', label: 'Overview', content: '# Overview\n\nProvide a high-level overview of the business need.' },
-        { id: 'stakeholders', label: 'Stakeholders', content: '# Stakeholders\n\n| Role | Name | Department | Responsibilities |\n|-----|------|------------|----------------|\n| Project Sponsor | | | |\n| Business Owner | | | |\n| End Users | | | |' },
+        { id: 'background', label: 'Background', content: '# Background\n\nRelevant background information and context for these requirements.' },
+        { id: 'stakeholders', label: 'Stakeholders', content: '# Stakeholders\n\n| Role | Name | Department | Interests |\n|-----|------|------------|----------|\n| | | | |' },
         { id: 'objectives', label: 'Objectives', content: '# Business Objectives\n\n1. \n2. \n3. ' },
         { id: 'success', label: 'Success Criteria', content: '# Success Criteria\n\n| Criteria | Measurement | Target |\n|----------|-------------|--------|\n| | | |' },
-        { id: 'constraints', label: 'Constraints', content: '# Constraints\n\n## Budget\n\n## Timeline\n\n## Resources\n\n## Technical Limitations' }
+        { id: 'constraints', label: 'Constraints', content: '# Constraints\n\n## Budget\n\n## Timeline\n\n## Resources\n\n## Technical Limitations' },
+        { id: 'assumptions', label: 'Assumptions', content: '# Assumptions\n\n- \n- \n- ' },
+        { id: 'requirements', label: 'Requirements', content: '# Business Requirements\n\n| ID | Requirement | Priority | Source | Rationale |\n|----|-------------|----------|--------|----------|\n| BR001 | | | | |\n| BR002 | | | | |' }
       ]
+    },
+    businessRequirements: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          description: { type: 'string', required: true },
+          priority: { 
+            type: 'string', 
+            enum: ['low', 'medium', 'high', 'critical'],
+            default: 'medium'
+          },
+          source: { type: 'string' },
+          rationale: { type: 'string' },
+          acceptanceCriteria: { type: 'string' },
+          notes: { type: 'string' }
+        }
+      },
+      default: []
     }
   },
-  
-  // Functional Requirements Specification Schema
+
+  // Functional Requirements Schema
   [ARTIFACT_TYPES.FUNCTIONAL_REQUIREMENTS]: {
     title: { type: 'string', required: true },
     description: { type: 'string' },
@@ -74,9 +248,38 @@ export const ARTIFACT_SCHEMAS = {
         }
       },
       default: []
+    },
+    userRoles: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          description: { type: 'string' },
+          permissions: { type: 'array', items: { type: 'string' } }
+        }
+      },
+      default: []
+    },
+    useCases: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          actor: { type: 'string', required: true },
+          preconditions: { type: 'array', items: { type: 'string' } },
+          steps: { type: 'array', items: { type: 'string' }, required: true },
+          postconditions: { type: 'array', items: { type: 'string' } },
+          alternateFlows: { type: 'array', items: { type: 'string' } }
+        }
+      },
+      default: []
     }
   },
-  
+
   // Non-Functional Requirements Schema
   [ARTIFACT_TYPES.NON_FUNCTIONAL_REQUIREMENTS]: {
     title: { type: 'string', required: true },
@@ -118,96 +321,17 @@ export const ARTIFACT_SCHEMAS = {
             type: 'string', 
             enum: ['low', 'medium', 'high', 'critical'],
             default: 'medium'
-          }
-        }
-      },
-      default: []
-    }
-  },
-  
-  // User Stories Schema
-  [ARTIFACT_TYPES.USER_STORIES]: {
-    title: { type: 'string', required: true },
-    description: { type: 'string' },
-    epics: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          title: { type: 'string', required: true },
-          description: { type: 'string' },
-          priority: { 
-            type: 'string', 
-            enum: ['low', 'medium', 'high', 'critical'],
-            default: 'medium'
           },
-          status: { 
-            type: 'string', 
-            enum: ['not_started', 'in_progress', 'completed'],
-            default: 'not_started'
-          },
-          businessValue: { type: 'string' }
-        }
-      },
-      default: []
-    },
-    stories: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          epicId: { type: 'string' },
-          title: { type: 'string', required: true },
-          storyFormat: {
-            type: 'object',
-            properties: {
-              asA: { type: 'string' },
-              iWant: { type: 'string' },
-              soThat: { type: 'string' }
-            }
-          },
-          acceptanceCriteria: { type: 'array', items: { type: 'string' } },
-          priority: { 
-            type: 'string', 
-            enum: ['low', 'medium', 'high', 'critical'],
-            default: 'medium'
-          },
-          size: { type: 'number' },
-          status: { 
-            type: 'string', 
-            enum: ['backlog', 'ready', 'in_progress', 'testing', 'done'],
-            default: 'backlog'
-          },
-          assignee: { type: 'string' },
-          tags: { type: 'array', items: { type: 'string' } },
+          testMethod: { type: 'string' },
           notes: { type: 'string' }
         }
       },
       default: []
-    },
-    personas: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          name: { type: 'string', required: true },
-          role: { type: 'string' },
-          demographics: { type: 'string' },
-          goals: { type: 'string' },
-          painPoints: { type: 'string' },
-          behaviors: { type: 'string' },
-          image: { type: 'string' }
-        }
-      },
-      default: []
     }
   },
-  
-  // Technical Specification Schema
-  [ARTIFACT_TYPES.TECHNICAL_SPECIFICATION]: {
+
+  // User Stories Schema
+  [ARTIFACT_TYPES.USER_STORIES]: {
     title: { type: 'string', required: true },
     description: { type: 'string' },
     sections: {
@@ -221,12 +345,89 @@ export const ARTIFACT_SCHEMAS = {
         }
       },
       default: [
-        { id: 'overview', label: 'Technical Overview', content: '# Technical Overview\n\nProvide a high-level overview of the technical solution.' },
-        { id: 'architecture', label: 'Architecture', content: '# System Architecture\n\n[Describe the overall architecture]\n\n## Components\n\n- Component 1\n- Component 2\n\n## Deployment Diagram\n\n[Include or link to diagram]' },
-        { id: 'dataModels', label: 'Data Models', content: '# Data Models\n\n## Entity 1\n\n| Field | Type | Description | Constraints |\n|-------|------|-------------|------------|\n| id | UUID | Primary key | Not null |\n| name | String | | |' },
-        { id: 'apis', label: 'API Specifications', content: '# API Specifications\n\n## Endpoint 1: [Endpoint Name]\n\n**URL**: [URL]\n\n**Method**: [HTTP Method]\n\n**Request Parameters**:\n```json\n{\n  "param1": "value1"\n}\n```\n\n**Response**:\n```json\n{\n  "field1": "value1"\n}\n```' },
-        { id: 'nonFunctional', label: 'Non-Functional Requirements', content: '# Non-Functional Requirements\n\n## Performance\n\n- Requirement 1\n\n## Security\n\n- Requirement 1\n\n## Scalability\n\n- Requirement 1\n\n## Reliability\n\n- Requirement 1' },
-        { id: 'integrations', label: 'Integrations', content: '# Integrations\n\n## Integration 1: [System Name]\n\n**Purpose**: [Purpose]\n\n**Integration Method**: [Method]\n\n**Data Flow**: [Description]' }
+        { id: 'overview', label: 'Overview', content: '# User Stories Overview\n\nThis document contains user stories that describe the functionality from an end-user perspective.' },
+        { id: 'epics', label: 'Epics', content: '# Epics\n\n## Epic 1: [Epic Name]\n\n**Description**: [Epic description]\n\n**User Stories**:\n- US001\n- US002' }
+      ]
+    },
+    stories: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          title: { type: 'string', required: true },
+          asA: { type: 'string', required: true },
+          iWant: { type: 'string', required: true },
+          soThat: { type: 'string', required: true },
+          acceptanceCriteria: { 
+            type: 'array', 
+            items: { type: 'string' },
+            default: []
+          },
+          priority: { 
+            type: 'string', 
+            enum: ['low', 'medium', 'high', 'critical'],
+            default: 'medium'
+          },
+          status: { 
+            type: 'string', 
+            enum: ['backlog', 'planned', 'in-progress', 'completed', 'on-hold'],
+            default: 'backlog'
+          },
+          epicId: { type: 'string' },
+          estimatedPoints: { type: 'number', default: 0 },
+          relatedRequirements: { type: 'array', items: { type: 'string' }, default: [] },
+          notes: { type: 'string' }
+        }
+      },
+      default: []
+    },
+    epics: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          description: { type: 'string' },
+          priority: { 
+            type: 'string', 
+            enum: ['low', 'medium', 'high', 'critical'],
+            default: 'medium'
+          },
+          status: { 
+            type: 'string', 
+            enum: ['backlog', 'planned', 'in-progress', 'completed', 'on-hold'],
+            default: 'backlog'
+          }
+        }
+      },
+      default: []
+    }
+  },
+
+  // System Architecture Schema
+  [ARTIFACT_TYPES.SYSTEM_ARCHITECTURE]: {
+    title: { type: 'string', required: true },
+    description: { type: 'string' },
+    sections: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          label: { type: 'string', required: true },
+          content: { type: 'string' }
+        }
+      },
+      default: [
+        { id: 'overview', label: 'Overview', content: '# Architecture Overview\n\nProvide a high-level overview of the system architecture.' },
+        { id: 'principles', label: 'Principles', content: '# Architectural Principles\n\n1. [Principle 1]\n2. [Principle 2]' },
+        { id: 'patterns', label: 'Patterns', content: '# Architectural Patterns\n\n## [Pattern 1]\n\n[Description of how this pattern is applied]' },
+        { id: 'components', label: 'Components', content: '# System Components\n\n## [Component 1]\n\n**Purpose**: [Purpose]\n\n**Responsibilities**:\n- [Responsibility 1]\n- [Responsibility 2]\n\n**Interfaces**:\n- [Interface 1]' },
+        { id: 'deployment', label: 'Deployment', content: '# Deployment Architecture\n\n[Description of deployment architecture]' },
+        { id: 'quality', label: 'Quality', content: '# Quality Attributes\n\n## Performance\n\n[Performance considerations]\n\n## Security\n\n[Security considerations]\n\n## Scalability\n\n[Scalability considerations]' },
+        { id: 'technology', label: 'Technology', content: '# Technology Stack\n\n| Layer | Technology | Version | Purpose |\n|-------|------------|---------|--------|\n| | | | |' }
       ]
     },
     components: {
@@ -237,21 +438,80 @@ export const ARTIFACT_SCHEMAS = {
           id: { type: 'string', required: true },
           name: { type: 'string', required: true },
           description: { type: 'string' },
+          type: { type: 'string' },
           responsibilities: { type: 'array', items: { type: 'string' } },
-          dependencies: { type: 'array', items: { type: 'string' } },
           interfaces: { type: 'array', items: { type: 'string' } },
-          technologies: { type: 'array', items: { type: 'string' } },
-          notes: { type: 'string' }
+          dependencies: { type: 'array', items: { type: 'string' } },
+          technologies: { type: 'array', items: { type: 'string' } }
+        }
+      },
+      default: []
+    },
+    interfaces: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          description: { type: 'string' },
+          type: { 
+            type: 'string', 
+            enum: ['synchronous', 'asynchronous', 'rest', 'soap', 'message', 'file', 'other'],
+            default: 'rest'
+          },
+          provider: { type: 'string' },
+          consumer: { type: 'string' },
+          operations: { type: 'array', items: { type: 'string' } }
+        }
+      },
+      default: []
+    },
+    diagrams: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          type: { 
+            type: 'string', 
+            enum: ['context', 'container', 'component', 'deployment', 'sequence', 'other'],
+            default: 'context'
+          },
+          description: { type: 'string' },
+          content: { type: 'string' } // Could be SVG, JSON for diagram tool, or URL
         }
       },
       default: []
     }
   },
-  
+
   // Database Design Schema
   [ARTIFACT_TYPES.DATABASE_DESIGN]: {
     title: { type: 'string', required: true },
     description: { type: 'string' },
+    sections: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', required: true },
+          label: { type: 'string', required: true },
+          content: { type: 'string' }
+        }
+      },
+      default: [
+        { id: 'overview', label: 'Overview', content: '# Database Design Overview\n\nProvide a high-level overview of the database design.' },
+        { id: 'conceptual', label: 'Conceptual Model', content: '# Conceptual Data Model\n\n[Description of the conceptual data model]' },
+        { id: 'logical', label: 'Logical Model', content: '# Logical Data Model\n\n[Description of the logical data model]' },
+        { id: 'physical', label: 'Physical Model', content: '# Physical Data Model\n\n[Description of the physical data model]' },
+        { id: 'tables', label: 'Tables', content: '# Table Definitions\n\n## [Table 1]\n\n| Column | Data Type | Constraints | Description |\n|--------|-----------|-------------|-------------|\n| | | | |' },
+        { id: 'relationships', label: 'Relationships', content: '# Entity Relationships\n\n| Entity 1 | Relationship | Entity 2 | Description |\n|----------|--------------|----------|-------------|\n| | | | |' },
+        { id: 'indexes', label: 'Indexes', content: '# Indexes\n\n| Name | Table | Columns | Unique | Description |\n|------|-------|---------|--------|-------------|\n| | | | | |' },
+        { id: 'migration', label: 'Migration', content: '# Data Migration Strategy\n\n[Description of the data migration strategy]' }
+      ]
+    },
     databaseInfo: {
       type: 'object',
       properties: {
@@ -316,129 +576,40 @@ export const ARTIFACT_SCHEMAS = {
         }
       },
       default: []
+    },
+    indexes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', required: true },
+          table: { type: 'string', required: true },
+          columns: { type: 'array', items: { type: 'string' }, required: true },
+          unique: { type: 'boolean', default: false },
+          description: { type: 'string' }
+        }
+      },
+      default: []
     }
   },
-  
-  // Project Plan Schema (keeping this from your original)
-  [ARTIFACT_TYPES.PROJECT_PLAN]: {
+
+  // API Specification Schema
+  [ARTIFACT_TYPES.API_SPECIFICATION]: {
     title: { type: 'string', required: true },
     description: { type: 'string' },
-    projectObjectives: { type: 'string' },
-    projectScope: { type: 'string' },
-    constraints: { type: 'string' },
-    timeline: {
-      type: 'object',
-      properties: {
-        startDate: { type: 'date', required: true },
-        endDate: { type: 'date', required: true },
-        workingDays: { type: 'array', items: { type: 'number' } }
-      }
-    },
-    phases: {
+    sections: {
       type: 'array',
       items: {
         type: 'object',
         properties: {
           id: { type: 'string', required: true },
-          name: { type: 'string', required: true },
-          startDate: { type: 'date', required: true },
-          endDate: { type: 'date', required: true },
-          color: { type: 'string' },
-          description: { type: 'string' },
-          completionPercentage: { type: 'number' }
+          label: { type: 'string', required: true },
+          content: { type: 'string' }
         }
-      }
-    },
-    tasks: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          name: { type: 'string', required: true },
-          phaseId: { type: 'string' },
-          startDate: { type: 'date', required: true },
-          endDate: { type: 'date', required: true },
-          references: { type: 'array', items: { type: 'string' } },
-          assignees: { type: 'array', items: { type: 'string' } },
-          status: { 
-            type: 'string', 
-            enum: ['not_started', 'in_progress', 'completed', 'on_hold'],
-            default: 'not_started'
-          },
-          completionPercentage: { type: 'number', default: 0 },
-          priority: { 
-            type: 'string', 
-            enum: ['low', 'medium', 'high', 'critical'],
-            default: 'medium'
-          },
-          notes: { type: 'string' }
-        }
-      }
-    },
-    milestones: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          name: { type: 'string', required: true },
-          date: { type: 'date', required: true },
-          description: { type: 'string' },
-          deliverables: { type: 'array', items: { type: 'string' } },
-          status: { 
-            type: 'string', 
-            enum: ['pending', 'completed', 'at_risk', 'missed'],
-            default: 'pending'
-          }
-        }
-      }
-    },
-    resources: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          name: { type: 'string', required: true },
-          role: { type: 'string' },
-          email: { type: 'string' },
-          availability: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                startDate: { type: 'date', required: true },
-                endDate: { type: 'date', required: true },
-                percentage: { type: 'number', default: 100 }
-              }
-            }
-          }
-        }
-      }
-    },
-    risks: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', required: true },
-          description: { type: 'string', required: true },
-          category: { type: 'string' },
-          probability: { 
-            type: 'string', 
-            enum: ['low', 'medium', 'high', 'very_high'],
-            default: 'medium'
-          },
-          impact: { 
-            type: 'string', 
-            enum: ['low', 'medium', 'high', 'very_high'],
-            default: 'medium'
-          },
-          mitigation: { type: 'string' },
-          owner: { type: 'string' }
-        }
-      }
+      },
+      default: [
+        { id: 'overview', label: 'Overview', content: '# API Overview\n\nProvide a high-level overview of' }
+      ]
     }
   }
 };

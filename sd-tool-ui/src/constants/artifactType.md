@@ -1,34 +1,24 @@
-| Artifact Type                     | Core Data Fields                                                                                                                                 |
-| :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| **PLANNING PHASE**                       |                                                                                                                                     |
-| `BUSINESS_CASE`                          | `title`, `problemStatement`, `proposedSolution`, `businessObjectives`, `expectedBenefits`, `costs`, `roiAnalysis`, `alternativesConsidered`, `conclusion` |
-| `PROJECT_CHARTER`                        | `projectName`, `projectManager`, `projectSponsor`, `projectPurpose`, `projectObjectives`, `projectScope`, `keyMilestones`, `budgetSummary`, `stakeholders`, `projectTeam` |
-| `STAKEHOLDER_ANALYSIS`                   | `stakeholderList` (array of: `{name, role, interest, influence, engagementLevel, communicationRequirements}`), `communicationPlanSummary` |
-| `PROJECT_PLAN`                           | `projectName`, `projectManager`, `startDate`, `endDate`, `projectGoals`, `projectScopeSummary`, `budget`, `resourcePlan`, `communicationPlan`, `riskManagementApproach`, `qualityManagementApproach`, `changeManagementPlan`, `milestones` (array of: `{milestoneId, milestoneName, dueDate, description, status}`), `roadmapDescription`, `projectSchedule` (Gantt chart data or task list), `roadmapData` |
-| `RISK_MANAGEMENT_PLAN`                   | `riskRegister` (array of: `{riskId, riskDescription, category, probability, impact, mitigationStrategy, contingencyPlan, owner, status}`), `riskAssessmentMatrix`, `escalationProcedures` |
-| **REQUIREMENTS PHASE**                   |                                                                                                                                     |
-| `BUSINESS_REQUIREMENTS_SPEC`             | `introduction`, `overallDescription`, `businessGoals`, `businessContext`, `userNeeds`, `constraints`, `glossary`                    |
-| `USER_STORIES`                           | `userStories` (array of: `{storyId, asA, iWantTo, soThat, acceptanceCriteria, priority, storyPoints, status}`), `storyMap` (optional) |
-| `USE_CASE_DIAGRAMS`                      | `useCases` (array of: `{useCaseId, useCaseName, actors, description, preConditions, postConditions, basicFlow, alternativeFlows}`), `useCaseDiagramData` |
-| `FUNCTIONAL_SPECIFICATION`             | `introduction`, `overallDescription`, `functionalRequirements` (array of: `{requirementId, requirementDescription, input, output, processing, rules}`), `processFlows` (text or diagram links), `dataFlowDiagrams` (diagram links), `glossary` |
-| `NON_FUNCTIONAL_REQUIREMENTS_SPEC`       | `introduction`, `overallDescription`, `nfrCategories`, `nfrDetails` (array of: `{nfrId, category, requirementDescription, metric, targetValue}`), `priority` |
-| `DATA_DICTIONARY`                        | `dataElements` (array of: `{elementName, definition, dataType, format, constraints, validationRules, source, relatedElements}`), `glossaryTerms` (array of: `{term, definition}`), `dataModelOverview` (optional) |
-| `REQUIREMENTS_TRACEABILITY_MATRIX`       | `traceabilityMatrixData`, `requirementsList`, `traceableItemsList`                                                                     |
-| **DESIGN PHASE**                         |                                                                                                                                     |
-| `SYSTEM_ARCHITECTURE_DOCUMENT`         | `introduction`, `architectureOverview`, `architecturalPatterns`, `componentDescriptions` (array of: `{componentName, description, interfaces, references}`), `deploymentView`, `technologyStack`, `qualityAttributes`, `diagramData` |
-| `DATABASE_DESIGN_DOCUMENT`             | `introduction`, `conceptualDataModel` (ER diagram data or link), `logicalDataModel`, `physicalDataModel`, `tableDefinitions` (array of table details), `dataMigrationStrategy` |
-| `API_SPECIFICATION`                      | `introduction`, `apiOverview`, `apiEndpoints` (array of endpoint details), `authenticationAndAuthorization`, `errorCodes`, `exampleRequestsResponses`, `apiDiagrams` (optional) |
-| `UI_UX_DESIGN_SPECIFICATION`            | `introduction`, `userPersonas`, `userFlows`, `wireframes` (array of wireframe details), `mockups` (array of mockup details), `styleGuide`, `interactionPatterns`, `navigationFlow`, `accessibilityConsiderations` |
-| `TECHNICAL_DESIGN_DOCUMENT`            | `introduction`, `componentDetails` (array of component details), `moduleDescriptions`, `integrationDetails`, `codeSnippets` (optional), `sequenceDiagrams` (optional), `classDiagrams` (optional) |
-| `DEPLOYMENT_ARCHITECTURE`              | `introduction`, `deploymentDiagram`, `infrastructureDiagram`, `environmentDetails`, `serverSpecifications`, `networkTopology`, `deploymentProcess`, `scalingStrategy`, `monitoringAndLogging`, `backupAndRecovery` |
-| `SECURITY_DESIGN_DOCUMENT`             | `introduction`, `threatModel`, `vulnerabilityAssessments`, `securityControls` (array of control details), `authenticationMechanism`, `authorizationMechanism`, `dataProtectionMeasures`, `securityPolicies`, `incidentResponsePlan`, `complianceRequirements` |
-| **TESTING PHASE**                        |                                                                                                                                     |
-| `TEST_PLAN`                              | `introduction`, `testObjectives`, `testScope`, `testingTypes`, `testingApproach`, `testEnvironment`, `testSchedule`, `entryCriteria`, `exitCriteria`, `rolesAndResponsibilities`, `testTools` |
-| `TEST_CASES_SPECIFICATION`             | `testCases` (array of test case details), `testSuiteOrganization`                                                                    |
-| `TEST_DATA`                              | `testDataDescription`, `testDataSets` (links or embedded), `environmentConfiguration`, `dataGenerationScripts` (optional)             |
-| `TEST_EXECUTION_REPORT`                  | `executionSummary`, `testRunDetails` (array of test run details), `testMetrics`, `environmentDetails`, `testLogs` (links or summaries) |
-| `DEFECT_REPORT`                          | `defects` (array of defect details), `defectMetrics` (optional)                                                                     |
-| `PERFORMANCE_TEST_REPORT`              | `testObjectives`, `environmentDetails`, `testScenarios`, `performanceMetrics` (array of metrics), `loadTestGraphs` (links or embedded), `bottleneckAnalysis`, `recommendations` |
-| `SECURITY_TEST_REPORT`                 | `testObjectives`, `environmentDetails`, `testingMethodology`, `vulnerabilitiesFound` (array of vulnerability details), `securityMetrics`, `complianceStatus` |
-| `UAT_PLAN`                               | `introduction`, `uatObjectives`, `uatScope`, `uatParticipants`, `uatSchedule`, `uatEnvironment`, `uatEntryCriteria`, `uatExitCriteria`, `uatTestScenarios`, `uatRolesAndResponsibilities` |
-| `UAT_REPORT`                             | `uatExecutionSummary`, `userFeedback`, `acceptanceStatus`, `issuesFoundDuringUAT` (array of issues), `uatSignOff`, `uatTestCasesExecuted` (summary) |
+# Business Requirements Document (BRD)
+High-level business needs and objectives
+Stakeholder information
+Success criteria
+
+# Functional Requirements Specification (FRS)
+Detailed functional requirements
+User roles and permissions
+Functions list (table view)
+Use cases
+UI/UX requirements
+Technical Specification
+System architecture
+Data models
+API specifications
+Integration points
+Non-functional requirements (performance, security, etc.)
+User Stories Collection
+Individual user stories with acceptance criteria
+Can be linked to functional requirements
+Data Dictionary
+Comprehensive data definitions
+Data relationships
+Validation rules
