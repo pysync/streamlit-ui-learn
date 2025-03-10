@@ -10,6 +10,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.4.6",
     "@mui/x-data-grid": "^7.27.3",
+    "@mui/x-date-pickers": "^7.27.3",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -23,6 +24,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^7.2.0",
     "react-scripts": "5.0.1",
+    "react-syntax-highlighter": "^15.6.1",
     "web-vitals": "^2.1.4",
     "zod": "^3.24.2"
   },
